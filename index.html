@@ -13,12 +13,17 @@
   <meta property="og:description" content="Ultra-premium security, architectural illumination, and rooftop solar solutions for modern spaces.">
   <meta property="og:image" content="assets/images/hero/hero-cctv.jpg">
   <meta property="og:type" content="website">
+  <link rel="preload" as="image" href="assets/images/hero/hero-cctv.jpg">
+  <link rel="preload" as="image" href="assets/images/hero/hero-led.jpg">
+  <link rel="preload" as="image" href="assets/images/hero/hero-solar.jpg">
 </head>
 <body class="theme-light">
 
   <!-- Announcement Bar -->
-  <div class="announcement-bar">
-    <span>CCTV SECURITY</span> • <span>ARCHITECTURAL LED LIGHTING</span> • <span>ROOFTOP SOLAR ENERGY</span> • <span>KESHOD, GUJARAT</span>
+    <div class="announcement-bar">
+    <div class="announcement-ticker">
+      <span>CCTV SECURITY</span> • <span>ARCHITECTURAL LED LIGHTING</span> • <span>ROOFTOP SOLAR ENERGY</span> • <span>KESHOD, GUJARAT</span> • <span>CCTV SECURITY</span> • <span>ARCHITECTURAL LED LIGHTING</span> • <span>ROOFTOP SOLAR ENERGY</span> • <span>KESHOD, GUJARAT</span>
+    </div>
   </div>
 
   <!-- Transparent Sticky Header -->
@@ -93,7 +98,7 @@
       <div class="carousel-track">
         <!-- Hero Slide 1: CCTV -->
         <div class="hero-slide active" data-index="0">
-          <img src="assets/images/hero/hero-cctv.jpg" alt="Luxury Villa Estate with Modern CCTV Security" class="hero-bg-media">
+          <img src="assets/images/hero/hero-cctv.jpg" alt="Luxury Villa Estate with Modern CCTV Security" class="hero-bg-media" fetchpriority="high">
           <div class="hero-overlay"></div>
           <div class="container hero-content">
             <div class="eyebrow">Surveillance Architecture</div>
