@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" width="420" height="80" fill="none">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C99732"/>
+      <stop offset="30%" stop-color="#F5DE9B"/>
+      <stop offset="55%" stop-color="#D4A63A"/>
+      <stop offset="85%" stop-color="#E3B95C"/>
+      <stop offset="100%" stop-color="#B88626"/>
+    </linearGradient>
+    <linearGradient id="goldGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C99732"/>
+      <stop offset="50%" stop-color="#F9E8B2"/>
+      <stop offset="100%" stop-color="#D4A63A"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Diamond Emblem -->
+  <g transform="translate(10, 8)">
+    <!-- Outer Diamond Frame -->
+    <polygon points="32,4 60,32 32,60 4,32" stroke="url(#goldGrad)" stroke-width="1.8" fill="none" />
+    
+    <!-- Inner Concentric Diamond -->
+    <polygon points="32,11 53,32 32,53 11,32" stroke="url(#goldGrad)" stroke-width="0.9" fill="rgba(212, 166, 58, 0.05)" stroke-dasharray="1 1" />
+    
+    <!-- Central Geometric Diamond Facets -->
+    <polygon points="32,17 47,32 32,47 17,32" stroke="url(#goldGrad)" stroke-width="1.2" fill="none" />
+    
+    <!-- Center Monogram S Stylized -->
+    <path d="M 35,24 C 35,24 28,24 28,28 C 28,32 36,31 36,36 C 36,40 28,40 28,40" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round" fill="none" />
+    <circle cx="32" cy="17" r="1.5" fill="url(#goldGrad)" />
+    <circle cx="32" cy="47" r="1.5" fill="url(#goldGrad)" />
+    <circle cx="17" cy="32" r="1.5" fill="url(#goldGrad)" />
+    <circle cx="47" cy="32" r="1.5" fill="url(#goldGrad)" />
+    
+    <!-- Diamond Corner Accents -->
+    <line x1="32" y1="0" x2="32" y2="4" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="32" y1="60" x2="32" y2="64" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="0" y1="32" x2="4" y2="32" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="60" y1="32" x2="64" y2="32" stroke="url(#goldGrad)" stroke-width="1.5" />
+  </g>
+
+  <!-- Brand Typography -->
+  <g transform="translate(86, 0)">
+    <!-- Brand Title: SIVANSH -->
+    <text x="0" y="36" font-family="'Playfair Display', 'Cinzel', 'Georgia', serif" font-size="25" font-weight="700" letter-spacing="4" fill="#FFFFFF">
+      SIVANSH
+    </text>
+    
+    <!-- Brand Subtitle: ENTERPRISE -->
+    <text x="180" y="36" font-family="'Playfair Display', 'Cinzel', 'Georgia', serif" font-size="25" font-weight="400" letter-spacing="4" fill="url(#goldGrad)">
+      ENTERPRISE
+    </text>
+
+    <!-- Fine Gold Accent Line -->
+    <line x1="0" y1="46" x2="320" y2="46" stroke="url(#goldGrad)" stroke-width="0.8" opacity="0.85" />
+    
+    <!-- Center Mini Diamond on Line -->
+    <polygon points="160,43 163,46 160,49 157,46" fill="url(#goldGrad)" />
+
+    <!-- Tagline: CCTV • LED LIGHTING • ROOFTOP SOLAR -->
+    <text x="1" y="60" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="8.5" font-weight="600" letter-spacing="2.8" fill="#D4A63A" opacity="0.95">
+      CCTV
+    </text>
+    <circle cx="48" cy="57.5" r="1.5" fill="url(#goldGrad)" />
+    <text x="60" y="60" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="8.5" font-weight="600" letter-spacing="2.8" fill="#EAEAEA" opacity="0.95">
+      LED LIGHTING
+    </text>
+    <circle cx="172" cy="57.5" r="1.5" fill="url(#goldGrad)" />
+    <text x="184" y="60" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="8.5" font-weight="600" letter-spacing="2.8" fill="#D4A63A" opacity="0.95">
+      ROOFTOP SOLAR
+    </text>
+  </g>
+</svg>
