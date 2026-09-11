@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
    THEME SWITCHER (DARK / LUXURY WHITE THEME)
    ========================================================================== */
 function initTheme() {
-  const savedTheme = localStorage.getItem("sivansh_theme") || "dark";
+  const savedTheme = localStorage.getItem("sivansh_theme") || "light";
   applyTheme(savedTheme);
 
   const toggleBtns = document.querySelectorAll(".theme-toggle-btn");

@@ -381,12 +381,29 @@ body.theme-light .logo-light {
   display: block !important;
 }
 
-.logo-light {
+/* Default Logo Visibility (White Theme Default) */
+.logo-light,
+.brand-emblem-img.emblem-light,
+.footer-official-logo.logo-light {
+  display: block;
+}
+
+.logo-dark,
+.brand-emblem-img.emblem-dark,
+.footer-official-logo.logo-dark {
   display: none;
 }
 
-.logo-dark {
-  display: block;
+body:not(.theme-light) .logo-light,
+body:not(.theme-light) .brand-emblem-img.emblem-light,
+body:not(.theme-light) .footer-official-logo.logo-light {
+  display: none !important;
+}
+
+body:not(.theme-light) .logo-dark,
+body:not(.theme-light) .brand-emblem-img.emblem-dark,
+body:not(.theme-light) .footer-official-logo.logo-dark {
+  display: block !important;
 }
 
 body.theme-light .floating-whatsapp {
