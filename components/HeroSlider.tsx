@@ -79,7 +79,8 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                 top: 0,
                 left: 0,
                 width: "100%",
-                height: "100%",
+                display: "flex",
+                alignItems: "center",
               }}
             >
               {slide.media_type === "video" ? (
@@ -89,39 +90,43 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                   loop 
                   muted 
                   playsInline 
-                  className="hero-bg-media" 
+                  className="hero-bg-media w-full h-full object-cover" 
                 />
               ) : (
                 <img 
                   src={slide.media_url} 
                   alt={slide.title} 
-                  className="hero-bg-media" 
-                  fetchPriority={idx === 0 ? "high" : "low"}
+                  className="hero-bg-media w-full h-full object-cover" 
+                  fetchPriority={idx === 0 ? "high" : "low"} 
                 />
               )}
-              <div className="hero-overlay"></div>
+              <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/20 z-[2]"></div>
 
-              <div className="container hero-content">
-                <div className="eyebrow">{slide.eyebrow}</div>
-                <h1 className="serif-heading">
-                  {slide.title}
-                  {slide.highlighted_text && (
-                    <>
-                      <br />
-                      <span className="text-gold-gradient">{slide.highlighted_text}</span>
-                    </>
-                  )}
-                </h1>
-                <p>{slide.description}</p>
-                <div className="hero-actions">
-                  <Link href={slide.primary_btn_url} className="btn btn-gold">
-                    {slide.primary_btn_text}
-                  </Link>
-                  {slide.secondary_btn_text && slide.secondary_btn_url && (
-                    <Link href={slide.secondary_btn_url} className="btn btn-gold-outline">
-                      {slide.secondary_btn_text}
+              <div className="container relative z-10 pt-36 pb-20 hero-content">
+                <div className="max-w-2xl">
+                  <div className="eyebrow text-gold mb-2">{slide.eyebrow}</div>
+                  <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
+                    {slide.title}
+                    {slide.highlighted_text && (
+                      <>
+                        {" "}
+                        <span className="text-gold-gradient">{slide.highlighted_text}</span>
+                      </>
+                    )}
+                  </h1>
+                  <p className="page-header-sub text-secondary text-base md:text-lg mb-8 leading-relaxed">
+                    {slide.description}
+                  </p>
+                  <div className="hero-actions flex flex-wrap gap-4">
+                    <Link href={slide.primary_btn_url} className="btn btn-gold">
+                      {slide.primary_btn_text}
                     </Link>
-                  )}
+                    {slide.secondary_btn_text && slide.secondary_btn_url && (
+                      <Link href={slide.secondary_btn_url} className="btn btn-gold-outline">
+                        {slide.secondary_btn_text}
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
