@@ -15,7 +15,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="min-h-screen bg-carbon-900 text-white flex">
+    <div className="min-h-screen bg-carbon-900 text-white flex admin-shell">
       {/* Sidebar */}
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

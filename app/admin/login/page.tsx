@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-carbon-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-carbon-900 flex items-center justify-center p-4 relative overflow-hidden admin-shell">
       {/* Background Decorative Gold Orbs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gold/5 rounded-full blur-3xl pointer-events-none" />

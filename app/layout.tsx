@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/actions/admin";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { CartProvider } from "@/components/CartContext";
-import CartDrawer from "@/components/CartDrawer";
-import WhatsAppButton from "@/components/WhatsAppButton";
+import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -44,17 +40,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <CartProvider>
-          <Header settings={settings} />
-          <main id="main-content">
-            {children}
-          </main>
-          <Footer settings={settings} />
-          <CartDrawer />
-          <WhatsAppButton 
-            phone={settings?.whatsapp || "+91 7533838538"} 
-          />
-        </CartProvider>
+        <PublicLayoutWrapper settings={settings}>
+          {children}
+        </PublicLayoutWrapper>
       </body>
     </html>
   );
