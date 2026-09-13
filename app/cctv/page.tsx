@@ -74,7 +74,7 @@ export default async function CCTVPage() {
               className="hero-bg-media w-full h-full object-cover" 
             />
           )}
-          <div className="hero-overlay absolute inset-0 bg-black/65"></div>
+          <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/20"></div>
         </div>
 
         <div className="container relative z-10 pt-36 pb-20">

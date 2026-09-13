@@ -77,10 +77,17 @@ export default function Header({ settings }: HeaderProps) {
     <header className={`site-header ${isScrolled ? "scrolled" : ""}`} id="site-header">
         <div className="container container-wide header-container">
           <Link href="/" className="brand-logo" aria-label="Sivansh Enterprise Home">
+            {/* Transparent Header Emblem (Gold Diamond with White E for dark hero media) */}
             <img 
-              src={settings?.logo_light_url || "/assets/images/logo-official-transparent.png"} 
+              src="/assets/images/logo-emblem-dark.png" 
               alt={settings?.business_name || "Sivansh Enterprise"} 
-              className="brand-emblem-img emblem-light" 
+              className="brand-emblem-img emblem-transparent" 
+            />
+            {/* Scrolled White Header Emblem (Gold Diamond with Black E for white header) */}
+            <img 
+              src="/assets/images/logo-emblem-light.png" 
+              alt={settings?.business_name || "Sivansh Enterprise"} 
+              className="brand-emblem-img emblem-scrolled-white" 
             />
             <div className="brand-text-block">
               <span className="brand-name-main">SIVANSH</span>

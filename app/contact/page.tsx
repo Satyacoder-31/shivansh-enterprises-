@@ -47,7 +47,7 @@ export default async function ContactPage() {
             alt="Sivansh Enterprise Direct Engineering Consultation" 
             className="hero-bg-media w-full h-full object-cover" 
           />
-          <div className="hero-overlay absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/70 to-black/80"></div>
+          <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/20"></div>
         </div>
 
         <div className="container relative z-10 pt-36 pb-20 text-center">
