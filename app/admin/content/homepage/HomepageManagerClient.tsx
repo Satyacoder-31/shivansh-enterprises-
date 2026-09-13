@@ -176,6 +176,26 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
   const [ctaFormSub, setCtaFormSub] = useState(ctaSec?.content?.form_subtitle || "Receive a comprehensive technical proposal within 24 hours.");
 
   // --------------------------------------------------------------------------
+  // Helper for Creating Brand-New Slide
+  // --------------------------------------------------------------------------
+  const openNewSlideModal = () => {
+    setEditingSlide({
+      title: "",
+      eyebrow: "Sivansh Enterprise",
+      highlighted_text: "",
+      description: "",
+      primary_btn_text: "",
+      primary_btn_url: "",
+      secondary_btn_text: "",
+      secondary_btn_url: "",
+      media_url: "",
+      media_type: "image",
+      display_order: slides.length + 1,
+      is_active: true
+    });
+  };
+
+  // --------------------------------------------------------------------------
   // Helper for Section Scrolling
   // --------------------------------------------------------------------------
   const scrollToSection = (id: string) => {
@@ -443,20 +463,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
 
           <button
             type="button"
-            onClick={() => setEditingSlide({
-              title: "PERIMETER SECURITY.",
-              eyebrow: "Sivansh Enterprise",
-              highlighted_text: "ENGINEERED FOR GUJARAT.",
-              description: "STQC & BIS-ER certified surveillance architecture and autonomous 4G solar optics.",
-              primary_btn_text: "Explore CCTV Systems",
-              primary_btn_url: "/cctv",
-              secondary_btn_text: "Request Site Survey",
-              secondary_btn_url: "/contact",
-              media_url: "/assets/images/hero/hero-cctv.jpg",
-              media_type: "image",
-              display_order: slides.length + 1,
-              is_active: true
-            })}
+            onClick={openNewSlideModal}
             className="btn btn-gold text-xs px-4 py-2 flex items-center gap-1.5"
           >
             <Plus size={14} />
@@ -526,20 +533,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
 
           <button
             type="button"
-            onClick={() => setEditingSlide({
-              title: "PERIMETER SECURITY.",
-              eyebrow: "Sivansh Enterprise",
-              highlighted_text: "ENGINEERED FOR GUJARAT.",
-              description: "STQC & BIS-ER certified surveillance architecture and autonomous 4G solar optics.",
-              primary_btn_text: "Explore CCTV Systems",
-              primary_btn_url: "/cctv",
-              secondary_btn_text: "Request Site Survey",
-              secondary_btn_url: "/contact",
-              media_url: "/assets/images/hero/hero-cctv.jpg",
-              media_type: "image",
-              display_order: slides.length + 1,
-              is_active: true
-            })}
+            onClick={openNewSlideModal}
             className="btn btn-gold btn-sm flex items-center gap-1.5 self-start sm:self-auto"
           >
             <Plus size={14} /> Add Hero Slide
@@ -614,6 +608,25 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
               </div>
             </div>
           ))}
+
+          {/* Quick Create New Slide Card */}
+          <button
+            type="button"
+            onClick={openNewSlideModal}
+            className="bg-carbon-900/60 border-2 border-dashed border-gold/30 hover:border-gold rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-all group min-h-[240px] cursor-pointer hover:bg-gold/5"
+          >
+            <div className="w-12 h-12 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
+              <Plus size={22} />
+            </div>
+            <div className="text-center">
+              <div className="font-serif text-sm font-bold text-white group-hover:text-gold transition-colors">
+                + Add Brand-New Slide
+              </div>
+              <p className="text-[11px] text-muted mt-1 max-w-[180px]">
+                Create a fresh image or video banner slide
+              </p>
+            </div>
+          </button>
         </div>
 
         {/* Slide Edit Modal */}
@@ -621,13 +634,29 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
             <div className="bg-carbon-800 border border-gold/40 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl">
               <div className="flex justify-between items-center border-b border-gold/15 pb-3">
-                <h3 className="font-serif text-lg font-bold text-gold">
-                  {editingSlide.id ? "Edit Hero Slide" : "Create New Hero Slide"}
-                </h3>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${
+                      editingSlide.id 
+                        ? "bg-gold/20 text-gold border-gold/30" 
+                        : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                    }`}>
+                      {editingSlide.id ? "Editing Slide" : `New Slide #${slides.length + 1}`}
+                    </span>
+                    <h3 className="font-serif text-lg font-bold text-gold">
+                      {editingSlide.id ? "Edit Hero Slide" : "Create Brand-New Hero Slide"}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-secondary mt-0.5">
+                    {editingSlide.id 
+                      ? "Modify headlines, background photo/video, or button destinations." 
+                      : "Fill in the fields below to add a new slide to your homepage hero carousel."}
+                  </p>
+                </div>
                 <button 
                   type="button" 
                   onClick={() => setEditingSlide(null)}
-                  className="text-muted hover:text-white text-xl cursor-pointer"
+                  className="text-muted hover:text-white text-xl cursor-pointer p-1 rounded hover:bg-white/10 transition-colors"
                 >
                   ✕
                 </button>
@@ -640,7 +669,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Sivansh Enterprise"
+                      placeholder="e.g. Sivansh Enterprise or Lighting Division"
                       className="form-input text-xs"
                       value={editingSlide.eyebrow || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, eyebrow: e.target.value })}
@@ -665,7 +694,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <input
                       type="text"
                       required
-                      placeholder="e.g. PERIMETER SECURITY."
+                      placeholder="e.g. ARCHITECTURAL ILLUMINATION."
                       className="form-input text-xs"
                       value={editingSlide.title || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, title: e.target.value })}
@@ -675,7 +704,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <label className="form-label text-xs">Highlighted Text (Gold Gradient)</label>
                     <input
                       type="text"
-                      placeholder="e.g. ENGINEERED FOR GUJARAT."
+                      placeholder="e.g. LUXURY SPACES REFINED."
                       className="form-input text-xs"
                       value={editingSlide.highlighted_text || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, highlighted_text: e.target.value })}
@@ -688,6 +717,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                   <textarea
                     required
                     rows={3}
+                    placeholder="Enter slide summary, certifications, capabilities, or client benefits..."
                     className="form-input form-textarea text-xs"
                     value={editingSlide.description || ""}
                     onChange={(e) => setEditingSlide({ ...editingSlide, description: e.target.value })}
@@ -704,7 +734,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                   })}
                   mediaType="both"
                   folder="hero"
-                  placeholder="/assets/images/hero/hero-cctv.jpg or upload video/photo"
+                  placeholder="Upload background photo (.jpg/.png/.webp) or video (.mp4/.webm)"
                   required
                 />
 
@@ -713,6 +743,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <label className="form-label text-xs">Primary Button Label</label>
                     <input
                       type="text"
+                      placeholder="e.g. Explore Solutions"
                       className="form-input text-xs"
                       value={editingSlide.primary_btn_text || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, primary_btn_text: e.target.value })}
@@ -722,6 +753,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <label className="form-label text-xs">Primary Button URL</label>
                     <input
                       type="text"
+                      placeholder="e.g. /led or /solar or /cctv"
                       className="form-input text-xs"
                       value={editingSlide.primary_btn_url || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, primary_btn_url: e.target.value })}
@@ -734,6 +766,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <label className="form-label text-xs">Secondary Button Label</label>
                     <input
                       type="text"
+                      placeholder="e.g. Request Site Survey"
                       className="form-input text-xs"
                       value={editingSlide.secondary_btn_text || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, secondary_btn_text: e.target.value })}
@@ -743,6 +776,7 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     <label className="form-label text-xs">Secondary Button URL</label>
                     <input
                       type="text"
+                      placeholder="e.g. /contact"
                       className="form-input text-xs"
                       value={editingSlide.secondary_btn_url || ""}
                       onChange={(e) => setEditingSlide({ ...editingSlide, secondary_btn_url: e.target.value })}
@@ -764,7 +798,11 @@ export default function HomepageManagerClient({ initialSlides, initialSections }
                     className="btn btn-gold btn-sm px-6 flex items-center gap-2"
                   >
                     <Save size={14} />
-                    <span>{loadingSection === "hero" ? "Saving Slide..." : "Save Slide"}</span>
+                    <span>
+                      {loadingSection === "hero" 
+                        ? "Saving..." 
+                        : editingSlide.id ? "Update Slide" : "Create & Publish Slide"}
+                    </span>
                   </button>
                 </div>
               </form>
