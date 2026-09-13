@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/utils";
@@ -11,16 +12,23 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const { addToCart } = useCart();
 
-  const isBuyOnline = product.purchase_mode === 'buy_online' && Boolean(product.price_value);
-  const displayPrice = isBuyOnline 
+  const isBuyOnline = Boolean(product.price_value) || product.purchase_mode === 'buy_online';
+  const displayPrice = product.price_value 
     ? formatPrice(product.price_value) 
     : (product.price_display || "Contact for Price");
 
   const whatsappMessage = encodeURIComponent(
     `Hello Sivansh Enterprise, I would like to inquire about ${product.name} (Model: ${product.model || 'N/A'}). Please share the price and availability.`
   );
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToCart(product, 1);
+    router.push("/checkout");
+  };
 
   return (
     <div className="product-card" id={`product-${product.id}`}>
@@ -78,32 +86,23 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="product-price-val">{displayPrice}</span>
           </div>
 
-          <div className="product-card-actions">
-            <Link 
-              href={`/product-details/${product.id}`} 
-              className="btn btn-gold-outline btn-sm"
+          <div className="product-card-actions flex flex-wrap gap-2">
+            <button 
+              type="button" 
+              className="btn btn-gold-outline btn-sm flex-1 text-xs px-2 py-2"
+              onClick={() => addToCart(product, 1)}
+              title="Add item to your shopping cart"
             >
-              Specs
-            </Link>
-
-            {isBuyOnline ? (
-              <button 
-                type="button" 
-                className="btn btn-gold btn-sm"
-                onClick={() => addToCart(product)}
-              >
-                Add to Cart
-              </button>
-            ) : (
-              <a 
-                href={`https://wa.me/917533838538?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-gold btn-sm"
-              >
-                Inquire
-              </a>
-            )}
+              Add to Cart
+            </button>
+            <button 
+              type="button" 
+              className="btn btn-gold btn-sm flex-1 text-xs px-2 py-2 font-bold"
+              onClick={handleBuyNow}
+              title="Proceed directly to order checkout"
+            >
+              Buy Now
+            </button>
           </div>
         </div>
       </div>

@@ -24,7 +24,8 @@ import {
   Sun,
   Building2,
   PhoneCall,
-  Sliders
+  Sliders,
+  Truck
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -95,6 +96,7 @@ export default function AdminSidebar({
       items: [
         { label: "General Settings", href: "/admin/settings/general", icon: Settings },
         { label: "Payment Gateway", href: "/admin/settings/payments", icon: CreditCard },
+        { label: "Shipping & NimbusPost", href: "/admin/settings/shipping", icon: Truck },
         { label: "Admin Users", href: "/admin/settings/users", icon: ShieldCheck },
       ],
     },

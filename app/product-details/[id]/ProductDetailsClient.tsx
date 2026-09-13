@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
 import { useCart } from "@/components/CartContext";
 import { formatPrice } from "@/lib/utils";
@@ -10,14 +11,20 @@ interface ProductDetailsClientProps {
 }
 
 export default function ProductDetailsClient({ product }: ProductDetailsClientProps) {
+  const router = useRouter();
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(product.main_image);
 
-  const isBuyOnline = product.purchase_mode === "buy_online" && Boolean(product.price_value);
-  const displayPrice = isBuyOnline
+  const isBuyOnline = Boolean(product.price_value) || product.purchase_mode === "buy_online";
+  const displayPrice = product.price_value
     ? formatPrice(product.price_value)
     : product.price_display || "Contact for Price";
+
+  const handleBuyNow = () => {
+    addToCart(product, quantity);
+    router.push("/checkout");
+  };
 
   const allImages = [
     product.main_image,
@@ -111,61 +118,52 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
 
         {/* Purchase / Inquiry Actions */}
         <div className="product-cta-container mb-8">
-          {isBuyOnline ? (
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="quantity-selector flex items-center border border-gold/40 rounded">
-                <button
-                  type="button"
-                  className="px-3 py-2 text-gold hover:bg-gold/10"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  -
-                </button>
-                <span className="px-4 py-2 font-medium">{quantity}</span>
-                <button
-                  type="button"
-                  className="px-3 py-2 text-gold hover:bg-gold/10"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  +
-                </button>
-              </div>
-
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="quantity-selector flex items-center border border-gold/40 rounded">
               <button
                 type="button"
-                className="btn btn-gold flex-1"
-                onClick={() => addToCart(product, quantity)}
+                className="px-3 py-2 text-gold hover:bg-gold/10"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                aria-label="Decrease quantity"
               >
-                Add {quantity} to Cart
+                -
               </button>
+              <span className="px-4 py-2 font-medium">{quantity}</span>
+              <button
+                type="button"
+                className="px-3 py-2 text-gold hover:bg-gold/10"
+                onClick={() => setQuantity(quantity + 1)}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
 
-              <a
-                href={`https://wa.me/917533838538?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-gold-outline"
-              >
-                Inquire on WhatsApp
-              </a>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-4">
-              <a
-                href={`https://wa.me/917533838538?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-gold flex-1 text-center"
-              >
-                Inquire on WhatsApp (+91 7533838538)
-              </a>
-              <a
-                href="/contact"
-                className="btn btn-gold-outline"
-              >
-                Request Quotation
-              </a>
-            </div>
-          )}
+            <button
+              type="button"
+              className="btn btn-gold-outline flex-1"
+              onClick={() => addToCart(product, quantity)}
+            >
+              Add to Cart
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-gold flex-1 font-bold"
+              onClick={handleBuyNow}
+            >
+              Buy Now
+            </button>
+
+            <a
+              href={`https://wa.me/917533838538?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-gold-outline"
+            >
+              Inquire on WhatsApp
+            </a>
+          </div>
         </div>
 
         {/* Dynamic Features List */}

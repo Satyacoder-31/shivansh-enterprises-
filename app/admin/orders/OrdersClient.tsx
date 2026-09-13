@@ -25,6 +25,32 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDispatching, setIsDispatching] = useState(false);
+
+  const handleNimbusDispatch = async (orderId: string) => {
+    setIsDispatching(true);
+    try {
+      const res = await fetch("/api/admin/orders/create-shipment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to book shipment on NimbusPost.");
+      }
+      alert(`Consignment Approved! NimbusPost AWB Generated: ${data.shipment.awb_number}`);
+      setOrders(orders.map(o => o.id === orderId ? { ...o, order_status: "shipped" as any, notes: data.order.notes } : o));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, order_status: "shipped" as any, notes: data.order.notes });
+      }
+      router.refresh();
+    } catch (err: any) {
+      alert("NimbusPost Dispatch Error: " + err.message);
+    } finally {
+      setIsDispatching(false);
+    }
+  };
 
   const statuses = [
     { id: "all", label: "All Orders" },
@@ -329,6 +355,60 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
                 <span>Total</span>
                 <span className="text-[#c5a059]">₹{Number(selectedOrder.total).toLocaleString("en-IN")}</span>
               </div>
+            </div>
+
+            {/* NimbusPost Logistics Fulfillment Block */}
+            <div className="bg-[#181818] p-4 rounded-lg border border-[#c5a059]/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-[#c5a059]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    NimbusPost Logistics Fulfillment
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-[#c5a059] bg-[#c5a059]/10 px-2 py-0.5 rounded border border-[#c5a059]/20">
+                  Origin: Keshod Hub (362220)
+                </span>
+              </div>
+
+              <div className="text-xs text-neutral-300">
+                {selectedOrder.notes || "Standard multi-carrier surface consignment"}
+              </div>
+
+              {selectedOrder.order_status === "shipped" || selectedOrder.notes?.includes("AWB:") ? (
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <span className="text-xs text-emerald-400 font-mono font-bold flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5" /> Consignment Booked & AWB Active
+                  </span>
+                  <div className="flex gap-2">
+                    <a
+                      href={`/api/admin/orders/label-preview?order=${selectedOrder.order_number}&awb=${
+                        selectedOrder.notes?.match(/AWB:\s*([^\s|)]+)/)?.[1] || "DEL-9812457812"
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-[#c5a059] text-black font-bold rounded text-xs hover:bg-[#d4af66] flex items-center gap-1 cursor-pointer"
+                    >
+                      <Printer className="w-3 h-3" /> Print Label (PDF)
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <p className="text-[11px] text-neutral-400">
+                    Verify hardware in Keshod warehouse, then click to generate courier AWB.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={isDispatching}
+                    onClick={() => handleNimbusDispatch(selectedOrder.id)}
+                    className="px-4 py-2 bg-gradient-to-r from-[#c5a059] to-[#b38e47] hover:from-[#d4af66] hover:to-[#c5a059] text-black font-bold rounded text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>{isDispatching ? "Booking NimbusPost..." : "Approve & Ship with NimbusPost"}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Status Selector & Actions */}
