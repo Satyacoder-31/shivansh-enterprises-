@@ -22,8 +22,8 @@ const config: Config = {
           700: "#171717",
           600: "#1F1F1F",
         },
-        secondary: "#C4C4C4",
-        muted: "#888888",
+        secondary: "var(--text-secondary)",
+        muted: "var(--text-muted)",
       },
       fontFamily: {
         display: ["Cinzel", "Playfair Display", "Georgia", "serif"],

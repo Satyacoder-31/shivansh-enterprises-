@@ -119,7 +119,7 @@ export default async function ServicesPage() {
       <section className="section-pad-sm bg-surface">
         <div className="container max-w-2xl mx-auto text-center">
           <div className="eyebrow text-gold">Tailored Proposals</div>
-          <h2 className="serif-heading text-3xl mb-4 text-white">{ctaTitle}</h2>
+          <h2 className="serif-heading text-3xl mb-4">{ctaTitle}</h2>
           <p className="text-secondary text-sm mb-8">
             {ctaDesc}
           </p>

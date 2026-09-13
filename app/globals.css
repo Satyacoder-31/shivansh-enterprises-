@@ -2279,7 +2279,22 @@ body.theme-light .service-detail-row .text-secondary {
   color: #333333 !important;
 }
 
-/* About Page Body Text Alignment */
+/* Universal Light Mode Secondary & Muted Text Contrast (Excludes Hero Banners) */
+body.theme-light .text-secondary:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *),
+body.theme-light p.text-secondary:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *),
+body.theme-light span.text-secondary:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *),
+body.theme-light a.text-secondary:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *),
+body.theme-light li.text-secondary:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *) {
+  color: #2C2C2C !important;
+}
+
+body.theme-light .text-muted:not(.domain-hero-section *):not(.hero-carousel-section *):not(.hero-slide *) {
+  color: #555555 !important;
+}
+
+/* ==========================================================================
+   ABOUT PAGE LIGHT MODE CONTRAST & CARD STYLING
+   ========================================================================== */
 .about-page-wrapper .serif-heading.text-3xl {
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.32;
@@ -2291,7 +2306,84 @@ body.theme-light .service-detail-row .text-secondary {
   line-height: 1.8;
 }
 
-/* Contact Page Body Text Alignment */
+/* Our Foundation Section */
+body.theme-light .about-page-wrapper .section-pad h2 {
+  color: #0A0A0A !important;
+}
+
+body.theme-light .about-page-wrapper .section-pad p,
+body.theme-light .about-page-wrapper .section-pad p.text-secondary {
+  color: #2C2C2C !important;
+}
+
+body.theme-light .about-page-wrapper .border-gold\/30 {
+  border-color: rgba(184, 134, 38, 0.4) !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Our Guiding Pillars Cards */
+body.theme-light .about-page-wrapper .bg-surface.rounded.border {
+  background-color: #FFFFFF !important;
+  border-color: #E2DDD5 !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.theme-light .about-page-wrapper .bg-surface.rounded.border h3,
+body.theme-light .about-page-wrapper .bg-surface.rounded.border h3.text-gold {
+  color: #8C6212 !important;
+}
+
+body.theme-light .about-page-wrapper .bg-surface.rounded.border p,
+body.theme-light .about-page-wrapper .bg-surface.rounded.border .text-secondary {
+  color: #2C2C2C !important;
+}
+
+/* Quality Mandate & Verified Accreditations Container */
+body.theme-light .about-page-wrapper .bg-surface\/40 {
+  background-color: #FFFFFF !important;
+  border-color: #DCD6CC !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.theme-light .about-page-wrapper .bg-surface\/40 h3 {
+  color: #0A0A0A !important;
+}
+
+body.theme-light .about-page-wrapper .bg-surface\/40 p,
+body.theme-light .about-page-wrapper .bg-surface\/40 .text-secondary {
+  color: #2C2C2C !important;
+}
+
+body.theme-light .about-page-wrapper .bg-surface\/40 .text-gold {
+  color: #8C6212 !important;
+}
+
+/* ==========================================================================
+   SERVICES PAGE LIGHT MODE - TAILORED PROPOSALS SECTION
+   ========================================================================== */
+body.theme-light .services-page-wrapper .section-pad-sm.bg-surface {
+  background-color: #F7F5F0 !important;
+  border-top: 1px solid #E2DDD5;
+  border-bottom: 1px solid #E2DDD5;
+}
+
+body.theme-light .services-page-wrapper .section-pad-sm.bg-surface h2 {
+  color: #0A0A0A !important;
+}
+
+body.theme-light .services-page-wrapper .section-pad-sm.bg-surface p,
+body.theme-light .services-page-wrapper .section-pad-sm.bg-surface .text-secondary {
+  color: #2C2C2C !important;
+}
+
+body.theme-light .services-page-wrapper .section-pad-sm.bg-surface .eyebrow {
+  color: #8C6212 !important;
+}
+
+/* ==========================================================================
+   CONTACT PAGE LIGHT MODE CONTRAST & OFFICE CARDS
+   ========================================================================== */
 .contact-page-wrapper h3.serif-heading {
   line-height: 1.35;
   margin-bottom: 1.25rem;
@@ -2299,6 +2391,63 @@ body.theme-light .service-detail-row .text-secondary {
 
 body.theme-light .contact-page-wrapper .section-pad .text-white {
   color: #0A0A0A !important;
+}
+
+body.theme-light .contact-page-wrapper .bg-surface {
+  background-color: #FFFFFF !important;
+  border-color: #E2DDD5 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+body.theme-light .contact-page-wrapper h3,
+body.theme-light .contact-page-wrapper h3.serif-heading {
+  color: #0A0A0A !important;
+}
+
+body.theme-light .contact-page-wrapper .text-gold {
+  color: #8C6212 !important;
+}
+
+body.theme-light .contact-page-wrapper .text-secondary,
+body.theme-light .contact-page-wrapper p.text-secondary,
+body.theme-light .contact-page-wrapper span.text-secondary {
+  color: #1A1A1A !important;
+}
+
+body.theme-light .contact-page-wrapper a.text-secondary {
+  color: #1A1A1A !important;
+  font-weight: 500;
+}
+
+body.theme-light .contact-page-wrapper a.text-secondary:hover {
+  color: #B88626 !important;
+}
+
+body.theme-light .contact-page-wrapper .border-t.border-gold\/10 {
+  border-top-color: #E2DDD5 !important;
+}
+
+body.theme-light .contact-page-wrapper .form-label {
+  color: #1A1A1A !important;
+  font-weight: 700;
+}
+
+body.theme-light .contact-page-wrapper .form-input,
+body.theme-light .contact-page-wrapper .form-textarea,
+body.theme-light .contact-page-wrapper .form-select {
+  background-color: #F9F8F5 !important;
+  border-color: #D6D0C4 !important;
+  color: #0A0A0A !important;
+}
+
+body.theme-light .contact-page-wrapper .form-input::placeholder,
+body.theme-light .contact-page-wrapper .form-textarea::placeholder {
+  color: #777777 !important;
+}
+
+body.theme-light .contact-page-wrapper .map-section.bg-surface {
+  background-color: #F7F5F0 !important;
+  border-top: 1px solid #E2DDD5;
 }
 
 /* Gallery Item Cards */

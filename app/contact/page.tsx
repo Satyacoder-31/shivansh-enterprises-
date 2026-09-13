@@ -68,7 +68,7 @@ export default async function ContactPage() {
             {/* Left Col: Contact Information */}
             <div className="lg:col-span-5 space-y-6">
               <div className="p-8 bg-surface rounded border border-gold/20">
-                <h3 className="serif-heading text-2xl mb-6 text-white">Keshod Office</h3>
+                <h3 className="serif-heading text-2xl mb-6">Keshod Office</h3>
                 
                 <div className="space-y-4 text-sm">
                   <div className="flex items-start gap-3">
@@ -117,7 +117,7 @@ export default async function ContactPage() {
             {/* Right Col: Consultation Form */}
             <div className="lg:col-span-7">
               <div className="p-8 bg-surface rounded border border-gold/30">
-                <h3 className="serif-heading text-2xl mb-2 text-white">{formTitle}</h3>
+                <h3 className="serif-heading text-2xl mb-2">{formTitle}</h3>
                 <p className="text-secondary text-sm mb-6">
                   {formSubtitle}
                 </p>
