@@ -109,7 +109,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
               className="max-w-2xl transition-all duration-700 ease-out"
             >
               <div className="eyebrow text-gold mb-2">{slide.eyebrow}</div>
-              <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
+              <h1 className="hero-title serif-heading text-4xl md:text-5xl mb-4 text-white">
                 {slide.title}
                 {slide.highlighted_text && (
                   <>
@@ -118,7 +118,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                   </>
                 )}
               </h1>
-              <p className="page-header-sub text-secondary text-base md:text-lg mb-8 leading-relaxed">
+              <p className="page-header-sub text-white/90 text-base md:text-lg mb-8 leading-relaxed">
                 {slide.description}
               </p>
               <div className="hero-slider-actions flex flex-wrap gap-4">

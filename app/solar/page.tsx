@@ -80,10 +80,10 @@ export default async function SolarPage() {
         <div className="container relative z-10 pt-36 pb-20">
           <div className="max-w-2xl">
             <div className="eyebrow text-gold mb-2">{heroEyebrow}</div>
-            <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
+            <h1 className="hero-title serif-heading text-4xl md:text-5xl mb-4 text-white">
               {heroTitle}
             </h1>
-            <p className="text-secondary text-lg mb-8 leading-relaxed">
+            <p className="text-white/90 text-lg mb-8 leading-relaxed">
               {heroDesc}
             </p>
             <div className="flex flex-wrap gap-4">

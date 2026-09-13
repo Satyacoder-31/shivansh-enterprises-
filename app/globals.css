@@ -265,17 +265,19 @@ body.theme-light .final-cta-section p {
 
 body.theme-light .shop-hero-banner,
 body.theme-light .contact-hero-banner {
-  background: radial-gradient(circle at top center, #F9F7F3 0%, #EDE7DB 80%);
+  color: #FFFFFF !important;
 }
 
 body.theme-light .shop-hero-banner h1,
 body.theme-light .contact-hero-banner h1 {
-  color: #0A0A0A;
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8) !important;
 }
 
 body.theme-light .shop-hero-banner p,
 body.theme-light .contact-hero-banner p {
-  color: #3A3A3A;
+  color: #E6E6E6 !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7) !important;
 }
 
 body.theme-light .shop-controls-bar {
@@ -1077,18 +1079,152 @@ body.theme-light .modal-close-btn {
   flex-direction: column;
 }
 
-.hero-slide h1 {
+/* Universal Hero Typography & Anti-Blend Contrast System */
+.domain-hero-section,
+.hero-carousel-section,
+.hero-slide {
   color: #FFFFFF !important;
-  margin-bottom: 1.2rem;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
 }
 
-.hero-slide p {
+/* Headings in all hero sections (Homepage, CCTV, LED, Solar, About, Services, Gallery, Contact, Shop) */
+.domain-hero-section h1,
+.domain-hero-section h2,
+.domain-hero-section .section-title,
+.domain-hero-section .hero-title,
+.domain-hero-section .serif-heading,
+.hero-carousel-section h1,
+.hero-carousel-section .section-title,
+.hero-carousel-section .hero-title,
+.hero-carousel-section .serif-heading,
+.hero-slide h1,
+.hero-slide .section-title,
+.hero-slide .hero-title,
+body.theme-light .domain-hero-section h1,
+body.theme-light .domain-hero-section h2,
+body.theme-light .domain-hero-section .section-title,
+body.theme-light .domain-hero-section .hero-title,
+body.theme-light .domain-hero-section .serif-heading,
+body.theme-light .hero-carousel-section h1,
+body.theme-light .hero-carousel-section .section-title,
+body.theme-light .hero-carousel-section .hero-title,
+body.theme-light .hero-carousel-section .serif-heading,
+body.theme-light .hero-slide h1,
+body.theme-light .hero-slide .section-title,
+body.theme-light .hero-slide .hero-title,
+body.theme-light .contact-page-wrapper .domain-hero-section h1,
+body.theme-light .contact-page-wrapper .domain-hero-section .text-white {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85), 0 4px 28px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Paragraphs & Descriptions in all hero sections */
+.domain-hero-section p,
+.domain-hero-section .page-header-sub,
+.domain-hero-section .text-secondary,
+.domain-hero-section .section-desc,
+.hero-carousel-section p,
+.hero-carousel-section .page-header-sub,
+.hero-carousel-section .text-secondary,
+.hero-slide p,
+body.theme-light .domain-hero-section p,
+body.theme-light .domain-hero-section .page-header-sub,
+body.theme-light .domain-hero-section .text-secondary,
+body.theme-light .domain-hero-section .section-desc,
+body.theme-light .hero-carousel-section p,
+body.theme-light .hero-carousel-section .page-header-sub,
+body.theme-light .hero-carousel-section .text-secondary,
+body.theme-light .hero-slide p,
+body.theme-light .contact-page-wrapper .domain-hero-section p,
+body.theme-light .contact-page-wrapper .domain-hero-section .text-secondary {
   color: #E2E2E2 !important;
-  font-size: 1.15rem;
-  max-width: 600px;
-  margin-bottom: 2.5rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Eyebrow / Badges in all hero sections */
+.domain-hero-section .eyebrow,
+.hero-carousel-section .eyebrow,
+.hero-slide .eyebrow,
+body.theme-light .domain-hero-section .eyebrow,
+body.theme-light .hero-carousel-section .eyebrow,
+body.theme-light .hero-slide .eyebrow {
+  color: var(--gold-light) !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Highlighted Text in all hero sections */
+.domain-hero-section .text-gold-gradient,
+.hero-carousel-section .text-gold-gradient,
+.hero-slide .text-gold-gradient,
+body.theme-light .domain-hero-section .text-gold-gradient,
+body.theme-light .hero-carousel-section .text-gold-gradient,
+body.theme-light .hero-slide .text-gold-gradient {
+  background: var(--gold-gradient) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: var(--gold-light) !important;
+  display: inline-block;
+  text-shadow: 0 2px 16px rgba(212, 166, 58, 0.45) !important;
+}
+
+/* Hero Outline Action Buttons - never turn dark on hover or in light mode */
+.domain-hero-section .btn-gold-outline,
+.hero-slider-actions .btn-gold-outline,
+body.theme-light .domain-hero-section .btn-gold-outline,
+body.theme-light .hero-slider-actions .btn-gold-outline {
+  color: var(--gold-light) !important;
+  border-color: var(--gold-border-strong) !important;
+  background: rgba(10, 10, 10, 0.45) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.domain-hero-section .btn-gold-outline:hover,
+.hero-slider-actions .btn-gold-outline:hover,
+body.theme-light .domain-hero-section .btn-gold-outline:hover,
+body.theme-light .hero-slider-actions .btn-gold-outline:hover {
+  color: #FFFFFF !important;
+  background: rgba(212, 166, 58, 0.25) !important;
+  border-color: var(--gold-light) !important;
+}
+
+/* Hero Nav Arrows (Desktop & Tablet) */
+.hero-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--gold-border);
+  color: #FFFFFF !important;
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.hero-arrow-prev {
+  left: 2rem;
+}
+
+.hero-arrow-next {
+  right: 2rem;
+}
+
+.hero-nav-arrow:hover {
+  background: var(--gold-primary);
+  border-color: var(--gold-light);
+  color: #0A0A0A !important;
+  box-shadow: 0 0 25px rgba(212, 166, 58, 0.5);
+  transform: translateY(-50%) scale(1.08);
 }
 
 .hero-actions {
@@ -2161,7 +2297,7 @@ body.theme-light .service-detail-row .text-secondary {
   margin-bottom: 1.25rem;
 }
 
-body.theme-light .contact-page-wrapper .text-white {
+body.theme-light .contact-page-wrapper .section-pad .text-white {
   color: #0A0A0A !important;
 }
 

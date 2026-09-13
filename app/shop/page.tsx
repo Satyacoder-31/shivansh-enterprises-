@@ -34,10 +34,10 @@ export default async function ShopPage() {
 
         <div className="container relative z-10 pt-36 pb-20 text-center">
           <div className="eyebrow text-gold mb-2">{bannerEyebrow}</div>
-          <h1 className="serif-heading section-title text-3xl md:text-5xl mb-4 text-white">
+          <h1 className="hero-title serif-heading text-3xl md:text-5xl mb-4 text-white">
             {bannerTitle}
           </h1>
-          <p className="page-header-sub max-w-2xl mx-auto text-secondary text-sm md:text-base leading-relaxed">
+          <p className="page-header-sub max-w-2xl mx-auto text-white/90 text-sm md:text-base leading-relaxed">
             {bannerDesc}
           </p>
         </div>
