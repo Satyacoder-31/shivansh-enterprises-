@@ -9,9 +9,10 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminCCTVContentPage() {
-  const [heroBanner, standards] = await Promise.all([
+  const [heroBanner, standards, productsHeader] = await Promise.all([
     getPageSection("cctv", "hero_banner"),
     getPageSection("cctv", "standards"),
+    getPageSection("cctv", "products_header"),
   ]);
 
   return (
@@ -20,6 +21,7 @@ export default async function AdminCCTVContentPage() {
       pageTitle="CCTV Surveillance Architecture"
       initialHeroBanner={heroBanner}
       initialStandards={standards}
+      initialProductsHeader={productsHeader}
     />
   );
 }

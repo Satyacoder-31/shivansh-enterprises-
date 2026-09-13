@@ -2,16 +2,18 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { PageSection } from "@/types/database";
 import { savePageSection } from "@/lib/actions/admin";
 import MediaUploadInput from "@/components/admin/MediaUploadInput";
-import { Save, Check, ExternalLink, ShieldCheck, Zap, Sun } from "lucide-react";
+import { Save, Check, ExternalLink, ShieldCheck, Zap, Sun, Package, Plus } from "lucide-react";
 
 interface DomainPageManagerClientProps {
   pageSlug: "cctv" | "led" | "solar";
   pageTitle: string;
   initialHeroBanner: PageSection | null;
   initialStandards: PageSection | null;
+  initialProductsHeader?: PageSection | null;
 }
 
 export default function DomainPageManagerClient({
@@ -19,6 +21,7 @@ export default function DomainPageManagerClient({
   pageTitle,
   initialHeroBanner,
   initialStandards,
+  initialProductsHeader,
 }: DomainPageManagerClientProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -44,6 +47,27 @@ export default function DomainPageManagerClient({
       { num: "02", title: "Standard Two", desc: "Detailed technical specification description." },
       { num: "03", title: "Standard Three", desc: "Detailed technical specification description." }
     ]
+  );
+
+  // Products Showcase Section State
+  const defaultProductsSubtitle = 
+    pageSlug === "cctv" ? "Verified Hardware" : 
+    pageSlug === "led" ? "Verified Fixtures" : "Solar Modules & Arrays";
+  const defaultProductsTitle = 
+    pageSlug === "cctv" ? "AUTHENTIC CCTV" : 
+    pageSlug === "led" ? "ARCHITECTURAL" : "MONOCRYSTALLINE";
+  const defaultProductsHighlight = 
+    pageSlug === "cctv" ? "SOLUTIONS." : 
+    pageSlug === "led" ? "LED SUITE." : "SOLAR SUITE.";
+
+  const [productsSubtitle, setProductsSubtitle] = useState(
+    initialProductsHeader?.subtitle || defaultProductsSubtitle
+  );
+  const [productsTitle, setProductsTitle] = useState(
+    initialProductsHeader?.title || defaultProductsTitle
+  );
+  const [productsHighlight, setProductsHighlight] = useState(
+    initialProductsHeader?.content?.highlighted_text || defaultProductsHighlight
   );
 
   const updatePillar = (index: number, field: "num" | "title" | "desc", val: string) => {
@@ -88,6 +112,20 @@ export default function DomainPageManagerClient({
           pillars: pillars,
         },
         display_order: 2,
+        is_active: true,
+      });
+
+      // 3. Save Products Showcase Section Header
+      await savePageSection({
+        page_slug: pageSlug,
+        section_key: "products_header",
+        title: productsTitle,
+        subtitle: productsSubtitle,
+        description: "",
+        content: {
+          highlighted_text: productsHighlight,
+        },
+        display_order: 3,
         is_active: true,
       });
 
@@ -386,6 +424,114 @@ export default function DomainPageManagerClient({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 3. Products Hardware Showcase Section ("Authentic Solutions") */}
+      <div className="bg-[#141414] border border-white/5 rounded-lg p-6 space-y-5">
+        <div className="border-b border-white/5 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-serif text-white tracking-wide uppercase">
+              3. Hardware Solutions Showcase Section
+            </h2>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Customize the section header and manage the hardware grid displayed below Core Capabilities.
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded text-[10px] font-mono uppercase bg-[#c5a059]/15 text-[#c5a059] border border-[#c5a059]/30 self-start sm:self-auto">
+            {pageSlug.toUpperCase()} Catalog Grid
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+              Section Eyebrow
+            </label>
+            <input
+              type="text"
+              value={productsSubtitle}
+              onChange={(e) => setProductsSubtitle(e.target.value)}
+              placeholder="e.g. Verified Hardware"
+              className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-[#c5a059] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+              Main Title
+            </label>
+            <input
+              type="text"
+              value={productsTitle}
+              onChange={(e) => setProductsTitle(e.target.value)}
+              placeholder="e.g. AUTHENTIC CCTV"
+              className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-[#c5a059] focus:outline-none font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+              Highlighted Gold Text
+            </label>
+            <input
+              type="text"
+              value={productsHighlight}
+              onChange={(e) => setProductsHighlight(e.target.value)}
+              placeholder="e.g. SOLUTIONS."
+              className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-[#c5a059] focus:border-[#c5a059] focus:outline-none font-medium"
+            />
+          </div>
+        </div>
+
+        {/* Live Preview of Header */}
+        <div className="p-4 bg-black/40 border border-[#c5a059]/15 rounded-lg">
+          <div className="text-[11px] uppercase tracking-wider text-neutral-400 font-mono mb-2">
+            Live Header Preview
+          </div>
+          <div className="text-center py-4 bg-[#0e0e0e] rounded border border-white/5">
+            <div className="text-xs uppercase tracking-wider font-mono text-[#c5a059] mb-1">
+              {productsSubtitle || "Verified Hardware"}
+            </div>
+            <h3 className="text-xl font-serif text-white">
+              {productsTitle || "AUTHENTIC CCTV"}{" "}
+              <span className="text-[#c5a059]">{productsHighlight || "SOLUTIONS."}</span>
+            </h3>
+          </div>
+        </div>
+
+        {/* Product Catalog Direct Manager Callout */}
+        <div className="p-4 bg-[#181818] border border-[#c5a059]/20 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded bg-[#c5a059]/10 border border-[#c5a059]/30 flex items-center justify-center shrink-0 mt-0.5">
+              <Package className="w-4 h-4 text-[#c5a059]" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-white">
+                Individual {pageSlug.toUpperCase()} Products in this Grid
+              </div>
+              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                The product cards appearing inside this grid (photos, prices, specifications, and stock) are managed directly in your Hardware Catalog.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/admin/products?category=${pageSlug}`}
+              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-neutral-200 border border-white/10 rounded text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <Package size={13} className="text-[#c5a059]" />
+              <span>View {pageSlug.toUpperCase()} Products</span>
+            </Link>
+            <Link
+              href="/admin/products/new"
+              className="px-3.5 py-2 bg-[#c5a059] hover:bg-[#b08d4b] text-black font-semibold rounded text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <Plus size={13} />
+              <span>+ Add New Product</span>
+            </Link>
+          </div>
         </div>
       </div>
     </form>

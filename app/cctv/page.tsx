@@ -13,6 +13,7 @@ export default async function CCTVPage() {
 
   const heroSec = sections.find((s) => s.section_key === "hero_banner");
   const standardsSec = sections.find((s) => s.section_key === "standards");
+  const productsSec = sections.find((s) => s.section_key === "products_header");
 
   // Hero Banner Values
   const heroEyebrow = heroSec?.subtitle || "Surveillance Architecture Division";
@@ -46,6 +47,11 @@ export default async function CCTVPage() {
       desc: "Full-color nocturnal imagery eliminating headlight glare and shadows. AI human & vehicle classification reduces false alerts."
     }
   ];
+
+  // Products Showcase Header Values
+  const productsEyebrow = productsSec?.subtitle || "Verified Hardware";
+  const productsTitle = productsSec?.title || "AUTHENTIC CCTV";
+  const productsHighlight = productsSec?.content?.highlighted_text || "SOLUTIONS.";
 
   return (
     <div className="domain-page cctv-page">
@@ -122,9 +128,9 @@ export default async function CCTVPage() {
       <section className="section-pad" id="cctv-hardware">
         <div className="container">
           <div className="section-header text-center mb-12">
-            <div className="eyebrow text-gold">Verified Hardware</div>
+            <div className="eyebrow text-gold">{productsEyebrow}</div>
             <h2 className="serif-heading section-title">
-              AUTHENTIC CCTV <span className="text-gold-gradient">SOLUTIONS.</span>
+              {productsTitle} <span className="text-gold-gradient">{productsHighlight}</span>
             </h2>
           </div>
 

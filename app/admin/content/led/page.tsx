@@ -9,9 +9,10 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLEDContentPage() {
-  const [heroBanner, standards] = await Promise.all([
+  const [heroBanner, standards, productsHeader] = await Promise.all([
     getPageSection("led", "hero_banner"),
     getPageSection("led", "standards"),
+    getPageSection("led", "products_header"),
   ]);
 
   return (
@@ -20,6 +21,7 @@ export default async function AdminLEDContentPage() {
       pageTitle="Architectural LED Lighting"
       initialHeroBanner={heroBanner}
       initialStandards={standards}
+      initialProductsHeader={productsHeader}
     />
   );
 }

@@ -13,6 +13,7 @@ export default async function SolarPage() {
 
   const heroSec = sections.find((s) => s.section_key === "hero_banner");
   const standardsSec = sections.find((s) => s.section_key === "standards");
+  const productsSec = sections.find((s) => s.section_key === "products_header");
 
   // Hero Banner Values
   const heroEyebrow = heroSec?.subtitle || "Clean Energy Engineering Division";
@@ -46,6 +47,11 @@ export default async function SolarPage() {
       desc: "Zero paperwork hassle for the client. We manage full DISCOM approvals, bi-directional meter synchronization, and government direct subsidies."
     }
   ];
+
+  // Products Showcase Header Values
+  const productsEyebrow = productsSec?.subtitle || "Solar Modules & Arrays";
+  const productsTitle = productsSec?.title || "MONOCRYSTALLINE";
+  const productsHighlight = productsSec?.content?.highlighted_text || "SOLAR SUITE.";
 
   return (
     <div className="domain-page solar-page">
@@ -122,9 +128,9 @@ export default async function SolarPage() {
       <section className="section-pad" id="solar-hardware">
         <div className="container">
           <div className="section-header text-center mb-12">
-            <div className="eyebrow text-gold">Solar Modules & Arrays</div>
+            <div className="eyebrow text-gold">{productsEyebrow}</div>
             <h2 className="serif-heading section-title">
-              MONOCRYSTALLINE <span className="text-gold-gradient">SOLAR SUITE.</span>
+              {productsTitle} <span className="text-gold-gradient">{productsHighlight}</span>
             </h2>
           </div>
 

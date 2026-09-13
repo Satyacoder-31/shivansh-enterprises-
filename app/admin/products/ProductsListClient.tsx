@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
@@ -14,6 +14,16 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get("category");
+      if (cat) {
+        setCategoryFilter(cat);
+      }
+    }
+  }, []);
 
   const filtered = products.filter((p) => {
     const matchesCategory = categoryFilter === "all" || p.category_id === categoryFilter;

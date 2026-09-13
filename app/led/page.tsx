@@ -13,6 +13,7 @@ export default async function LEDPage() {
 
   const heroSec = sections.find((s) => s.section_key === "hero_banner");
   const standardsSec = sections.find((s) => s.section_key === "standards");
+  const productsSec = sections.find((s) => s.section_key === "products_header");
 
   // Hero Banner Values
   const heroEyebrow = heroSec?.subtitle || "Architectural Luminescence Division";
@@ -46,6 +47,11 @@ export default async function LEDPage() {
       desc: "100% spotless diffused linear ribbons for false ceilings, floating stairs, and wall-wash treatments with seamless dimming."
     }
   ];
+
+  // Products Showcase Header Values
+  const productsEyebrow = productsSec?.subtitle || "Verified Fixtures";
+  const productsTitle = productsSec?.title || "ARCHITECTURAL";
+  const productsHighlight = productsSec?.content?.highlighted_text || "LED SUITE.";
 
   return (
     <div className="domain-page led-page">
@@ -122,9 +128,9 @@ export default async function LEDPage() {
       <section className="section-pad" id="led-hardware">
         <div className="container">
           <div className="section-header text-center mb-12">
-            <div className="eyebrow text-gold">Verified Fixtures</div>
+            <div className="eyebrow text-gold">{productsEyebrow}</div>
             <h2 className="serif-heading section-title">
-              ARCHITECTURAL <span className="text-gold-gradient">LED SUITE.</span>
+              {productsTitle} <span className="text-gold-gradient">{productsHighlight}</span>
             </h2>
           </div>
 
