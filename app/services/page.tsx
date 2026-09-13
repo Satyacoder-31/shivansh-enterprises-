@@ -17,6 +17,7 @@ export default async function ServicesPage() {
   const bannerTitle = bannerSec?.title || "SPECIALIZED DISCIPLINES.";
   const bannerDesc = bannerSec?.description || 
     "End-to-end design, deployment, liaisoning, and maintenance across CCTV security, architectural LED illumination, and turnkey rooftop solar power.";
+  const bannerMediaUrl = bannerSec?.content?.media_url || "/assets/images/hero/hero-services.jpg";
 
   const ctaTitle = ctaSec?.title || "DISCUSS YOUR SITE REQUIREMENTS";
   const ctaDesc = ctaSec?.description || 
@@ -24,14 +25,23 @@ export default async function ServicesPage() {
 
   return (
     <div className="services-page-wrapper">
-      {/* Header Banner */}
-      <section className="page-header-banner bg-surface section-pad-sm text-center">
-        <div className="container">
-          <div className="eyebrow text-gold">{bannerEyebrow}</div>
-          <h1 className="serif-heading section-title">
+      {/* Header Hero Section with Background Image */}
+      <section className="domain-hero-section relative overflow-hidden min-h-[440px] flex items-center">
+        <div className="domain-hero-bg absolute inset-0 z-0">
+          <img 
+            src={bannerMediaUrl} 
+            alt="Sivansh Enterprise Specialized Engineering Capabilities" 
+            className="hero-bg-media w-full h-full object-cover" 
+          />
+          <div className="hero-overlay absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/70 to-black/80"></div>
+        </div>
+
+        <div className="container relative z-10 pt-36 pb-20 text-center">
+          <div className="eyebrow text-gold mb-2">{bannerEyebrow}</div>
+          <h1 className="serif-heading section-title text-3xl md:text-5xl mb-4 text-white">
             {bannerTitle}
           </h1>
-          <p className="max-w-2xl mx-auto text-secondary">
+          <p className="max-w-2xl mx-auto text-secondary text-sm md:text-base leading-relaxed">
             {bannerDesc}
           </p>
         </div>

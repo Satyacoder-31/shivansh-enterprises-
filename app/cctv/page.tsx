@@ -77,7 +77,7 @@ export default async function CCTVPage() {
           <div className="hero-overlay absolute inset-0 bg-black/65"></div>
         </div>
 
-        <div className="container relative z-10 py-24">
+        <div className="container relative z-10 pt-36 pb-20">
           <div className="max-w-2xl">
             <div className="eyebrow text-gold mb-2">{heroEyebrow}</div>
             <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">

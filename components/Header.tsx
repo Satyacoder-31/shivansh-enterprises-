@@ -74,16 +74,7 @@ export default function Header({ settings }: HeaderProps) {
   ];
 
   return (
-    <>
-      {/* Announcement Bar */}
-      <div className="announcement-bar">
-        <div className="announcement-ticker">
-          <span>{announcement}</span> • <span>{announcement}</span>
-        </div>
-      </div>
-
-      {/* Main Sticky Header */}
-      <header className={`site-header ${isScrolled ? "scrolled" : ""}`} id="site-header">
+    <header className={`site-header ${isScrolled ? "scrolled" : ""}`} id="site-header">
         <div className="container container-wide header-container">
           <Link href="/" className="brand-logo" aria-label="Sivansh Enterprise Home">
             <img 
@@ -192,6 +183,5 @@ export default function Header({ settings }: HeaderProps) {
           </div>
         </div>
       </header>
-    </>
   );
 }
