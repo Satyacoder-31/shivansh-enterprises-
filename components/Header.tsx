@@ -56,10 +56,21 @@ export default function Header({ settings }: HeaderProps) {
     }
   };
 
-  // Close mobile menu on route change
+  // Close mobile menu on route change & handle body scroll lock
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.classList.add("mobile-menu-locked");
+    } else {
+      document.body.classList.remove("mobile-menu-locked");
+    }
+    return () => {
+      document.body.classList.remove("mobile-menu-locked");
+    };
+  }, [mobileMenuOpen]);
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -95,9 +106,20 @@ export default function Header({ settings }: HeaderProps) {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Navigation & Mobile Drawer */}
           <nav>
             <ul className={`nav-menu ${mobileMenuOpen ? "active" : ""}`} id="nav-menu">
+              <li className="mobile-menu-header">
+                <span className="mobile-menu-title">Navigation</span>
+                <button 
+                  type="button" 
+                  className="mobile-menu-close-btn" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close Navigation"
+                >
+                  ✕
+                </button>
+              </li>
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
                 return (
@@ -105,6 +127,7 @@ export default function Header({ settings }: HeaderProps) {
                     <Link 
                       href={link.href} 
                       className={`nav-link ${isActive ? "active" : ""}`}
+                      onClick={() => setMobileMenuOpen(false)}
                     >
                       {link.label}
                     </Link>
@@ -189,6 +212,15 @@ export default function Header({ settings }: HeaderProps) {
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Backdrop Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="mobile-nav-backdrop" 
+            onClick={() => setMobileMenuOpen(false)} 
+            aria-hidden="true" 
+          />
+        )}
       </header>
   );
 }

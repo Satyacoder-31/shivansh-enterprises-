@@ -99,7 +99,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
       </div>
 
       {/* Hero Content Container - Matching CCTV section with pt-36 pb-20 */}
-      <div className="container relative z-10 pt-36 pb-20 w-full">
+      <div className="container relative z-10 hero-slider-content pt-36 pb-20 w-full">
         {activeSlides.map((slide, idx) => {
           const isActive = idx === currentIndex;
           if (!isActive) return null;
@@ -121,7 +121,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
               <p className="page-header-sub text-secondary text-base md:text-lg mb-8 leading-relaxed">
                 {slide.description}
               </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="hero-slider-actions flex flex-wrap gap-4">
                 <Link href={slide.primary_btn_url} className="btn btn-gold">
                   {slide.primary_btn_text}
                 </Link>
