@@ -6,6 +6,9 @@ export const metadata = {
   title: "Categories | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminCategoriesPage() {
   const categories = await getCategories();
 

@@ -6,6 +6,9 @@ export const metadata = {
   title: "Manage Services | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminServicesPage() {
   const services = await getServices();
 

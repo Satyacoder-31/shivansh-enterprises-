@@ -6,6 +6,9 @@ export const metadata = {
   title: "Media Assets Library | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminMediaPage() {
   const media = await getMediaLibrary();
 

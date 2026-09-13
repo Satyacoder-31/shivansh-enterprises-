@@ -6,6 +6,9 @@ export const metadata = {
   title: "Gallery & Showcase | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminGalleryPage() {
   const items = await getGalleryItems();
 

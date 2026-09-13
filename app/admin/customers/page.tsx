@@ -6,6 +6,9 @@ export const metadata = {
   title: "Customers | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminCustomersPage() {
   const customers = await getCustomers();
 

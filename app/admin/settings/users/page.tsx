@@ -6,6 +6,9 @@ export const metadata = {
   title: "Team & User Roles | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminUsersPage() {
   const profiles = await getProfiles();
 

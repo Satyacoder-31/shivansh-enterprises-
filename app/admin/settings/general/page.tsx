@@ -6,6 +6,9 @@ export const metadata = {
   title: "General Settings | Sivansh Admin",
 };
 
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminGeneralSettingsPage() {
   const settings = await getSiteSettings();
 
