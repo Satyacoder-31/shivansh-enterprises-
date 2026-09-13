@@ -5,18 +5,20 @@ import { useRouter } from "next/navigation";
 import type { PageSection } from "@/types/database";
 import { savePageSection } from "@/lib/actions/admin";
 import MediaUploadInput from "@/components/admin/MediaUploadInput";
-import { Save, Check, ExternalLink, Award } from "lucide-react";
+import { Save, Check, ExternalLink, Award, ShieldCheck, Plus, Trash2 } from "lucide-react";
 
 interface AboutManagerClientProps {
   initialBanner: PageSection | null;
   initialFoundation: PageSection | null;
   initialPillars: PageSection | null;
+  initialQualityMandates?: PageSection | null;
 }
 
 export default function AboutManagerClient({
   initialBanner,
   initialFoundation,
   initialPillars,
+  initialQualityMandates,
 }: AboutManagerClientProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -60,6 +62,37 @@ export default function AboutManagerClient({
       }
     ]
   );
+
+  // 4. Quality Mandates State
+  const [qmTitle, setQmTitle] = useState(initialQualityMandates?.title || "VERIFIED ACCREDITATIONS");
+  const [qmSubtitle, setQmSubtitle] = useState(initialQualityMandates?.subtitle || "Quality Mandates");
+  const [qmDesc, setQmDesc] = useState(initialQualityMandates?.description || "Our products and installations comply with BIS-ER standards tested through accredited STQC laboratories, CE, RoHS, and IEC 61215/61730 solar generation norms.");
+  const [qmBadges, setQmBadges] = useState<string[]>(
+    initialQualityMandates?.content?.badges || [
+      "BIS-ER Certified",
+      "Accredited STQC Tested",
+      "Tier-1 TopCon Solar",
+      "IK10 Vandal-Proof",
+      "CRI 95+ Photometric"
+    ]
+  );
+  const [newBadge, setNewBadge] = useState("");
+
+  const addBadge = () => {
+    if (!newBadge.trim()) return;
+    setQmBadges([...qmBadges, newBadge.trim()]);
+    setNewBadge("");
+  };
+
+  const removeBadge = (idx: number) => {
+    setQmBadges(qmBadges.filter((_, i) => i !== idx));
+  };
+
+  const updateBadge = (idx: number, val: string) => {
+    const next = [...qmBadges];
+    next[idx] = val;
+    setQmBadges(next);
+  };
 
   const updateCard = (index: number, field: "num" | "title" | "desc", val: string) => {
     const next = [...pillarsCards];
@@ -116,6 +149,20 @@ export default function AboutManagerClient({
           cards: pillarsCards,
         },
         display_order: 3,
+        is_active: true,
+      });
+
+      // 4. Save Quality Mandates Section
+      await savePageSection({
+        page_slug: "about",
+        section_key: "quality_mandates",
+        title: qmTitle,
+        subtitle: qmSubtitle,
+        description: qmDesc,
+        content: {
+          badges: qmBadges,
+        },
+        display_order: 4,
         is_active: true,
       });
 
@@ -425,6 +472,148 @@ export default function AboutManagerClient({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 4. Quality Mandates & Accreditations Section */}
+      <div className="bg-[#141414] border border-white/5 rounded-lg p-6 space-y-5">
+        <div className="border-b border-white/5 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-serif text-white tracking-wide uppercase">
+              4. Quality Mandates & Verified Accreditations Section
+            </h2>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Customize the quality mandates headline, laboratory compliance narrative, and certification checkmark badges.
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded text-[10px] font-mono uppercase bg-[#c5a059]/15 text-[#c5a059] border border-[#c5a059]/30 self-start sm:self-auto">
+            Accreditations Box
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+              Section Eyebrow
+            </label>
+            <input
+              type="text"
+              value={qmSubtitle}
+              onChange={(e) => setQmSubtitle(e.target.value)}
+              placeholder="e.g. Quality Mandates"
+              className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-[#c5a059] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+              Section Headline Title *
+            </label>
+            <input
+              type="text"
+              required
+              value={qmTitle}
+              onChange={(e) => setQmTitle(e.target.value)}
+              placeholder="e.g. VERIFIED ACCREDITATIONS"
+              className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-[#c5a059] focus:outline-none font-medium"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">
+            Accreditations Overview Description
+          </label>
+          <textarea
+            rows={3}
+            value={qmDesc}
+            onChange={(e) => setQmDesc(e.target.value)}
+            placeholder="Describe certifications, standards compliance, and testing laboratories..."
+            className="w-full bg-[#1c1c1c] border border-white/10 rounded p-3 text-xs text-white focus:border-[#c5a059] focus:outline-none leading-relaxed"
+          />
+        </div>
+
+        {/* Accreditation Badges Manager */}
+        <div className="p-4 bg-black/40 border border-white/5 rounded-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="text-xs font-mono uppercase text-[#c5a059] block font-semibold">
+                Accreditation Badges & Certification Tags
+              </span>
+              <span className="text-[11px] text-neutral-400">
+                These tags display with a checkmark across the quality mandates ribbon on the live website.
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-neutral-500">
+              {qmBadges.length} Active Badges
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {qmBadges.map((badge, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 bg-[#1c1c1c] border border-white/10 rounded px-3 py-1.5 focus-within:border-[#c5a059]"
+              >
+                <span className="text-xs text-[#c5a059] font-bold">✓</span>
+                <input
+                  type="text"
+                  value={badge}
+                  onChange={(e) => updateBadge(idx, e.target.value)}
+                  className="flex-1 bg-transparent text-xs text-white focus:outline-none"
+                  placeholder="e.g. BIS-ER Certified"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeBadge(idx)}
+                  className="text-neutral-500 hover:text-rose-400 text-xs p-1 transition-colors"
+                  title="Remove badge"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add New Badge Row */}
+          <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+            <input
+              type="text"
+              value={newBadge}
+              onChange={(e) => setNewBadge(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addBadge();
+                }
+              }}
+              placeholder="Type new accreditation (e.g. ISO 9001, CE Certified)..."
+              className="flex-1 bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-[#c5a059] focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={addBadge}
+              className="px-4 py-2 bg-[#c5a059] hover:bg-[#b08d4b] text-black font-semibold rounded text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <Plus size={13} />
+              <span>Add Badge</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Preview Box */}
+        <div className="p-5 bg-black/50 border border-[#c5a059]/20 rounded-lg text-center">
+          <div className="text-[10px] uppercase font-mono text-neutral-400 tracking-wider mb-2">Live Accreditation Preview</div>
+          <div className="text-xs uppercase font-mono text-[#c5a059] mb-1">{qmSubtitle || "Quality Mandates"}</div>
+          <h3 className="text-lg font-serif text-white mb-2">{qmTitle || "VERIFIED ACCREDITATIONS"}</h3>
+          <p className="text-xs text-neutral-400 max-w-xl mx-auto mb-4 leading-relaxed">{qmDesc}</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs font-semibold text-[#c5a059]">
+            {qmBadges.map((badge, idx) => (
+              <span key={idx} className="flex items-center gap-1.5 bg-[#c5a059]/10 px-2.5 py-1 rounded border border-[#c5a059]/20">
+                ✓ {badge}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </form>

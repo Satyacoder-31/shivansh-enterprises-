@@ -51,6 +51,20 @@ export default async function AboutPage() {
     }
   ];
 
+  // Quality Mandates & Certifications values
+  const qmSec = sections.find((s) => s.section_key === "quality_mandates");
+  const qmEyebrow = qmSec?.subtitle || "Quality Mandates";
+  const qmTitle = qmSec?.title || "VERIFIED ACCREDITATIONS";
+  const qmDesc = qmSec?.description || 
+    "Our products and installations comply with BIS-ER standards tested through accredited STQC laboratories, CE, RoHS, and IEC 61215/61730 solar generation norms.";
+  const qmBadges: string[] = qmSec?.content?.badges || [
+    "BIS-ER Certified",
+    "Accredited STQC Tested",
+    "Tier-1 TopCon Solar",
+    "IK10 Vandal-Proof",
+    "CRI 95+ Photometric"
+  ];
+
   return (
     <div className="about-page-wrapper">
       {/* Header Banner */}
@@ -133,24 +147,20 @@ export default async function AboutPage() {
             </div>
           </div>
 
-          {/* Standards & Certifications */}
+          {/* Standards & Certifications (Quality Mandates) */}
           <div className="p-8 bg-surface/40 rounded border border-gold/30 text-center">
-            <div className="eyebrow text-gold mb-2">Quality Mandates</div>
-            <h3 className="serif-heading text-2xl mb-4">VERIFIED ACCREDITATIONS</h3>
+            <div className="eyebrow text-gold mb-2">{qmEyebrow}</div>
+            <h3 className="serif-heading text-2xl mb-4">{qmTitle}</h3>
             <p className="text-secondary text-sm max-w-2xl mx-auto mb-6">
-              Our products and installations comply with BIS-ER standards tested through accredited STQC laboratories, 
-              CE, RoHS, and IEC 61215/61730 solar generation norms.
+              {qmDesc}
             </p>
             <div className="flex flex-wrap justify-center gap-6 text-sm font-semibold text-gold">
-              <span>✓ BIS-ER Certified</span>
-              <span>•</span>
-              <span>✓ Accredited STQC Tested</span>
-              <span>•</span>
-              <span>✓ Tier-1 TopCon Solar</span>
-              <span>•</span>
-              <span>✓ IK10 Vandal-Proof</span>
-              <span>•</span>
-              <span>✓ CRI 95+ Photometric</span>
+              {qmBadges.map((badge, idx) => (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span className="text-gold/40">•</span>}
+                  <span>✓ {badge}</span>
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>

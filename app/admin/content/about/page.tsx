@@ -9,10 +9,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminAboutContentPage() {
-  const [banner, foundation, pillars] = await Promise.all([
+  const [banner, foundation, pillars, qualityMandates] = await Promise.all([
     getPageSection("about", "hero_banner"),
     getPageSection("about", "foundation"),
     getPageSection("about", "pillars"),
+    getPageSection("about", "quality_mandates"),
   ]);
 
   return (
@@ -20,6 +21,7 @@ export default async function AdminAboutContentPage() {
       initialBanner={banner}
       initialFoundation={foundation}
       initialPillars={pillars}
+      initialQualityMandates={qualityMandates}
     />
   );
 }
