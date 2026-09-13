@@ -58,30 +58,22 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
 
   return (
     <section 
-      className="hero-carousel-section" 
+      className="domain-hero-section hero-carousel-section relative overflow-hidden min-h-[540px] md:min-h-[640px] flex items-center" 
       id="hero-carousel" 
       aria-label="Cinematic Showcase"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="carousel-track">
+      {/* Background Media Slides - Stretched over to the top header section (identical to CCTV) */}
+      <div className="domain-hero-bg absolute inset-0 z-0">
         {activeSlides.map((slide, idx) => {
           const isActive = idx === currentIndex;
           return (
             <div 
               key={slide.id} 
-              className={`hero-slide ${isActive ? "active" : ""}`}
-              style={{
-                opacity: isActive ? 1 : 0,
-                pointerEvents: isActive ? "auto" : "none",
-                transition: "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
-                position: isActive ? "relative" : "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-              }}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              }`}
             >
               {slide.media_type === "video" ? (
                 <video 
@@ -100,34 +92,44 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                   fetchPriority={idx === 0 ? "high" : "low"} 
                 />
               )}
-              <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/20 z-[2]"></div>
+              <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/20"></div>
+            </div>
+          );
+        })}
+      </div>
 
-              <div className="container relative z-10 pt-36 pb-20 hero-content">
-                <div className="max-w-2xl">
-                  <div className="eyebrow text-gold mb-2">{slide.eyebrow}</div>
-                  <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
-                    {slide.title}
-                    {slide.highlighted_text && (
-                      <>
-                        {" "}
-                        <span className="text-gold-gradient">{slide.highlighted_text}</span>
-                      </>
-                    )}
-                  </h1>
-                  <p className="page-header-sub text-secondary text-base md:text-lg mb-8 leading-relaxed">
-                    {slide.description}
-                  </p>
-                  <div className="hero-actions flex flex-wrap gap-4">
-                    <Link href={slide.primary_btn_url} className="btn btn-gold">
-                      {slide.primary_btn_text}
-                    </Link>
-                    {slide.secondary_btn_text && slide.secondary_btn_url && (
-                      <Link href={slide.secondary_btn_url} className="btn btn-gold-outline">
-                        {slide.secondary_btn_text}
-                      </Link>
-                    )}
-                  </div>
-                </div>
+      {/* Hero Content Container - Matching CCTV section with pt-36 pb-20 */}
+      <div className="container relative z-10 pt-36 pb-20 w-full">
+        {activeSlides.map((slide, idx) => {
+          const isActive = idx === currentIndex;
+          if (!isActive) return null;
+          return (
+            <div 
+              key={slide.id} 
+              className="max-w-2xl transition-all duration-700 ease-out"
+            >
+              <div className="eyebrow text-gold mb-2">{slide.eyebrow}</div>
+              <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
+                {slide.title}
+                {slide.highlighted_text && (
+                  <>
+                    {" "}
+                    <span className="text-gold-gradient">{slide.highlighted_text}</span>
+                  </>
+                )}
+              </h1>
+              <p className="page-header-sub text-secondary text-base md:text-lg mb-8 leading-relaxed">
+                {slide.description}
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link href={slide.primary_btn_url} className="btn btn-gold">
+                  {slide.primary_btn_text}
+                </Link>
+                {slide.secondary_btn_text && slide.secondary_btn_url && (
+                  <Link href={slide.secondary_btn_url} className="btn btn-gold-outline">
+                    {slide.secondary_btn_text}
+                  </Link>
+                )}
               </div>
             </div>
           );
@@ -136,7 +138,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
 
       {/* Manual Slide Indicators */}
       {activeSlides.length > 1 && (
-        <div className="hero-indicators">
+        <div className="hero-indicators absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {activeSlides.map((_, idx) => (
             <button
               key={idx}
