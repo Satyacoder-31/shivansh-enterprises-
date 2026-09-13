@@ -2418,11 +2418,19 @@ body:has(.admin-shell) .whatsapp-btn-container {
 
 /* Luxury Footer */
 .site-footer {
-  background: #0c0c0c;
-  border-top: 1px solid var(--footer-border);
   padding: 0;
   position: relative;
   transition: background-color var(--transition-fast);
+}
+
+/* WhatsApp Floating Action Button */
+.whatsapp-float-btn {
+  box-shadow: 0 10px 28px rgba(37, 211, 102, 0.45);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.whatsapp-float-btn:hover {
+  box-shadow: 0 14px 34px rgba(37, 211, 102, 0.6);
 }
 
 .footer-top-grid {
