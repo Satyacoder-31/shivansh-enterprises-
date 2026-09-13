@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { GalleryItem } from "@/types/database";
 import { saveGalleryItem, deleteGalleryItem } from "@/lib/actions/admin";
 import { Plus, Trash2, Edit2, Image, Video, Star, ExternalLink } from "lucide-react";
+import MediaUploadInput from "@/components/admin/MediaUploadInput";
 
 export default function GalleryManagerClient({ initialItems }: { initialItems: GalleryItem[] }) {
   const router = useRouter();
@@ -272,28 +273,25 @@ export default function GalleryManagerClient({ initialItems }: { initialItems: G
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">Media URL *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingItem.media_url || ""}
-                  onChange={e => setEditingItem({ ...editingItem, media_url: e.target.value })}
-                  placeholder="https://... or /assets/images/gallery/..."
-                  className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-white focus:border-[#c5a059] focus:outline-none"
-                />
-              </div>
+              <MediaUploadInput
+                label="Media Asset (Photo or Video) *"
+                value={editingItem.media_url || ""}
+                onChange={(url, type) => setEditingItem({
+                  ...editingItem,
+                  media_url: url,
+                  media_type: type === "video" ? "video" : (editingItem.media_type || "image")
+                })}
+                folder="gallery"
+                placeholder="/assets/images/gallery/... or upload directly"
+              />
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1.5">Thumbnail URL (Optional)</label>
-                <input
-                  type="text"
-                  value={editingItem.thumbnail_url || ""}
-                  onChange={e => setEditingItem({ ...editingItem, thumbnail_url: e.target.value })}
-                  placeholder="Leave blank to use Media URL"
-                  className="w-full bg-[#1c1c1c] border border-white/10 rounded px-3 py-2 text-white focus:border-[#c5a059] focus:outline-none"
-                />
-              </div>
+              <MediaUploadInput
+                label="Custom Thumbnail Image (Optional)"
+                value={editingItem.thumbnail_url || ""}
+                onChange={(url) => setEditingItem({ ...editingItem, thumbnail_url: url })}
+                folder="gallery"
+                placeholder="Upload poster/thumbnail image"
+              />
 
               <div className="grid grid-cols-3 gap-4 pt-2">
                 <div>

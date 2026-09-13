@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Service } from "@/types/database";
 import { saveService, deleteService } from "@/lib/actions/admin";
 import { Plus, Edit3, Trash2, Save, Wrench } from "lucide-react";
+import MediaUploadInput from "@/components/admin/MediaUploadInput";
 
 export default function ServicesClient({ initialServices }: { initialServices: Service[] }) {
   const router = useRouter();

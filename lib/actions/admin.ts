@@ -15,7 +15,8 @@ import type {
   PaymentSettings,
   Profile,
   MediaItem,
-  Customer
+  Customer,
+  PageSection
 } from "@/types/database";
 
 // ============================================================================
@@ -207,7 +208,8 @@ export async function getProductById(id: string): Promise<Product | null> {
 export async function saveProduct(
   productData: Partial<Product>, 
   specs: { spec_name: string; spec_value: string }[] = [], 
-  features: string[] = []
+  features: string[] = [],
+  galleryImages: string[] = []
 ) {
   const supabase = createAdminClient();
   const id = productData.id || productData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
@@ -248,16 +250,22 @@ export async function saveProduct(
     await supabase.from('product_features').insert(featureRows);
   }
 
-  // Ensure primary image
-  if (productData.main_image) {
-    await supabase.from('product_images').delete().eq('product_id', id);
-    await supabase.from('product_images').insert([{
+  // Save all images
+  await supabase.from('product_images').delete().eq('product_id', id);
+  const allImageUrls = Array.from(new Set([
+    productData.main_image,
+    ...galleryImages
+  ])).filter(Boolean) as string[];
+
+  if (allImageUrls.length > 0) {
+    const imageRows = allImageUrls.map((url, idx) => ({
       product_id: id,
-      image_url: productData.main_image,
+      image_url: url,
       alt_text: productData.name,
-      display_order: 1,
-      is_primary: true
-    }]);
+      display_order: idx + 1,
+      is_primary: idx === 0
+    }));
+    await supabase.from('product_images').insert(imageRows);
   }
 
   revalidatePath('/shop');
@@ -664,5 +672,96 @@ export async function getCustomers(): Promise<Customer[]> {
   if (error) throw new Error(error.message);
   return data || [];
 }
+
+// ============================================================================
+// PAGE SECTIONS CMS
+// ============================================================================
+export async function getPageSections(pageSlug: string): Promise<PageSection[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('page_sections')
+    .select('*')
+    .eq('page_slug', pageSlug)
+    .order('display_order', { ascending: true });
+  if (error) {
+    console.error(`Error fetching sections for ${pageSlug}:`, error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getPageSection(pageSlug: string, sectionKey: string): Promise<PageSection | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('page_sections')
+    .select('*')
+    .eq('page_slug', pageSlug)
+    .eq('section_key', sectionKey)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+export async function savePageSection(section: Partial<PageSection>) {
+  const supabase = createAdminClient();
+  
+  if (section.id) {
+    const { data, error } = await supabase
+      .from('page_sections')
+      .update({
+        ...section,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', section.id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    const pubPath = (!section.page_slug || section.page_slug === 'home') ? '/' : `/${section.page_slug}`;
+    const admPath = section.page_slug === 'home' ? '/admin/content/homepage' : `/admin/content/${section.page_slug}`;
+    revalidatePath(pubPath);
+    revalidatePath(admPath);
+    return data;
+  } else {
+    const { data: existing } = await supabase
+      .from('page_sections')
+      .select('id')
+      .eq('page_slug', section.page_slug || 'home')
+      .eq('section_key', section.section_key || '')
+      .single();
+
+    const pubPath = (!section.page_slug || section.page_slug === 'home') ? '/' : `/${section.page_slug}`;
+    const admPath = section.page_slug === 'home' ? '/admin/content/homepage' : `/admin/content/${section.page_slug}`;
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('page_sections')
+        .update({
+          ...section,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      revalidatePath(pubPath);
+      revalidatePath(admPath);
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('page_sections')
+        .insert([{
+          ...section,
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      revalidatePath(pubPath);
+      revalidatePath(admPath);
+      return data;
+    }
+  }
+}
+
 
 

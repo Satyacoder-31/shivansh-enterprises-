@@ -1,25 +1,38 @@
 import React from "react";
 import Link from "next/link";
-import { getServices } from "@/lib/actions/admin";
-import ContactForm from "@/components/ContactForm";
+import { getServices, getPageSections } from "@/lib/actions/admin";
 
-export const revalidate = 0;
+export const revalidate = 0; // Always serve fresh dynamic content
 
 export default async function ServicesPage() {
-  const services = await getServices();
+  const [services, sections] = await Promise.all([
+    getServices(),
+    getPageSections("services"),
+  ]);
+
+  const bannerSec = sections.find((s) => s.section_key === "hero_banner");
+  const ctaSec = sections.find((s) => s.section_key === "cta");
+
+  const bannerEyebrow = bannerSec?.subtitle || "Engineering Capabilities";
+  const bannerTitle = bannerSec?.title || "SPECIALIZED DISCIPLINES.";
+  const bannerDesc = bannerSec?.description || 
+    "End-to-end design, deployment, liaisoning, and maintenance across CCTV security, architectural LED illumination, and turnkey rooftop solar power.";
+
+  const ctaTitle = ctaSec?.title || "DISCUSS YOUR SITE REQUIREMENTS";
+  const ctaDesc = ctaSec?.description || 
+    "Our engineering leads provide complimentary on-ground site audits and technical project briefs across Saurashtra.";
 
   return (
     <div className="services-page-wrapper">
       {/* Header Banner */}
       <section className="page-header-banner bg-surface section-pad-sm text-center">
         <div className="container">
-          <div className="eyebrow text-gold">Engineering Capabilities</div>
+          <div className="eyebrow text-gold">{bannerEyebrow}</div>
           <h1 className="serif-heading section-title">
-            SPECIALIZED <span className="text-gold-gradient">DISCIPLINES.</span>
+            {bannerTitle}
           </h1>
           <p className="max-w-2xl mx-auto text-secondary">
-            End-to-end design, deployment, liaisoning, and maintenance across CCTV security, 
-            architectural LED illumination, and turnkey rooftop solar power.
+            {bannerDesc}
           </p>
         </div>
       </section>
@@ -36,10 +49,10 @@ export default async function ServicesPage() {
               }`}
             >
               <div className={idx % 2 === 1 ? "md:col-start-2" : ""}>
-                <div className="service-index text-gold font-bold text-sm uppercase tracking-widest mb-2">
+                <div className="service-index text-gold font-bold text-sm uppercase tracking-widest mb-2 font-mono">
                   Division 0{idx + 1}
                 </div>
-                <h2 className="serif-heading text-2xl md:text-3xl mb-4">{service.name}</h2>
+                <h2 className="serif-heading text-2xl md:text-3xl mb-4 text-white">{service.name}</h2>
                 <p className="text-secondary leading-relaxed mb-6">
                   {service.full_desc || service.short_desc}
                 </p>
@@ -73,13 +86,13 @@ export default async function ServicesPage() {
                   )}
                 </div>
 
-                <Link href="/contact" className="btn btn-gold btn-sm">
+                <Link href={service.cta_url || "/contact"} className="btn btn-gold btn-sm">
                   {service.cta_text || "Request Consultation"}
                 </Link>
               </div>
 
               <div className={idx % 2 === 1 ? "md:col-start-1" : ""}>
-                <div className="rounded overflow-hidden border border-gold/30">
+                <div className="rounded overflow-hidden border border-gold/30 bg-black/40">
                   <img 
                     src={service.main_image || "/assets/images/hero/hero-cctv.jpg"} 
                     alt={service.name} 
@@ -96,11 +109,23 @@ export default async function ServicesPage() {
       <section className="section-pad-sm bg-surface">
         <div className="container max-w-2xl mx-auto text-center">
           <div className="eyebrow text-gold">Tailored Proposals</div>
-          <h2 className="serif-heading text-3xl mb-4">DISCUSS YOUR SITE REQUIREMENTS</h2>
+          <h2 className="serif-heading text-3xl mb-4 text-white">{ctaTitle}</h2>
           <p className="text-secondary text-sm mb-8">
-            Our certified lead technicians conduct thorough perimeter audits and electrical load modeling.
+            {ctaDesc}
           </p>
-          <ContactForm sourcePage="services_page" />
+          <div className="flex justify-center gap-4">
+            <Link href="/contact" className="btn btn-gold">
+              Schedule On-Site Audit
+            </Link>
+            <a 
+              href="https://wa.me/917533838538" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn btn-gold-outline"
+            >
+              WhatsApp Lead Engineer
+            </a>
+          </div>
         </div>
       </section>
     </div>

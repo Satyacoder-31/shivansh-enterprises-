@@ -6,6 +6,7 @@ import { saveProduct } from "@/lib/actions/admin";
 import type { Product, ProductSpec, ProductFeature } from "@/types/database";
 import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import MediaUploadInput from "@/components/admin/MediaUploadInput";
 
 interface ProductFormProps {
   initialProduct?: Product | null;
@@ -51,6 +52,10 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     ]
   );
 
+  const [galleryImages, setGalleryImages] = useState<string[]>(
+    initialProduct?.images?.map((img) => img.image_url).filter((url) => url !== initialProduct?.main_image) || []
+  );
+
   // Add & remove specs
   const addSpec = () => {
     setSpecs([...specs, { spec_name: "", spec_value: "" }]);
@@ -79,6 +84,21 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
 
   const removeFeature = (index: number) => {
     setFeatures(features.filter((_, i) => i !== index));
+  };
+
+  // Add & remove gallery images
+  const addGalleryImage = () => {
+    setGalleryImages([...galleryImages, ""]);
+  };
+
+  const updateGalleryImage = (index: number, url: string) => {
+    const updated = [...galleryImages];
+    updated[index] = url;
+    setGalleryImages(updated);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages(galleryImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,8 +135,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
 
       const validSpecs = specs.filter((s) => s.spec_name.trim() && s.spec_value.trim());
       const validFeatures = features.filter((f) => f.trim());
+      const validGalleryImages = galleryImages.filter((img) => img.trim());
 
-      await saveProduct(productPayload, validSpecs, validFeatures);
+      await saveProduct(productPayload, validSpecs, validFeatures, validGalleryImages);
       router.push("/admin/products");
       router.refresh();
     } catch (err: any) {
@@ -324,25 +345,58 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         </div>
       </div>
 
-      {/* 3. Media & Image URL */}
+      {/* 3. Media & Image Upload */}
       <div className="p-6 bg-carbon-800 border border-gold/15 rounded-xl space-y-4">
-        <h2 className="font-serif text-lg font-bold text-gold">3. Product Media</h2>
-        <div>
-          <label className="form-label text-xs">Main Image Path / URL *</label>
-          <input
-            type="text"
-            required
-            placeholder="/assets/images/products/cofe-4g-solar-camera.jpg or https://..."
-            className="form-input text-sm"
-            value={formData.main_image}
-            onChange={(e) => setFormData({ ...formData, main_image: e.target.value })}
-          />
-        </div>
-        {formData.main_image && (
-          <div className="mt-2 w-32 h-32 rounded border border-gold/20 overflow-hidden bg-black/40 flex items-center justify-center">
-            <img src={formData.main_image} alt="Preview" className="max-w-full max-h-full object-contain" />
+        <h2 className="font-serif text-lg font-bold text-gold">3. Product Media & Gallery</h2>
+        <MediaUploadInput
+          label="Product Main Image *"
+          value={formData.main_image}
+          onChange={(url) => setFormData({ ...formData, main_image: url })}
+          folder="products"
+          placeholder="/assets/images/products/... or upload directly"
+          required
+        />
+
+        {/* Additional Gallery Images */}
+        <div className="pt-4 border-t border-gold/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs uppercase tracking-wider text-neutral-300 font-medium">Additional Gallery Photos</h3>
+              <p className="text-muted text-[11px]">Secondary photo angles shown in the thumbnail carousel on the product page.</p>
+            </div>
+            <button
+              type="button"
+              onClick={addGalleryImage}
+              className="btn btn-gold-outline btn-sm flex items-center gap-1"
+            >
+              <Plus size={14} /> Add Gallery Photo
+            </button>
           </div>
-        )}
+
+          <div className="space-y-3">
+            {galleryImages.map((imgUrl, idx) => (
+              <div key={idx} className="flex gap-2 items-start p-3 bg-black/40 rounded border border-white/5">
+                <div className="flex-1">
+                  <MediaUploadInput
+                    label={`Gallery Image ${idx + 1}`}
+                    value={imgUrl}
+                    onChange={(url) => updateGalleryImage(idx, url)}
+                    folder="products"
+                    placeholder="Upload or select secondary product angle"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeGalleryImage(idx)}
+                  className="p-2 text-red-400 hover:text-red-300 mt-6"
+                  aria-label="Remove Image"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 4. Dynamic Specifications (Repeatable) */}

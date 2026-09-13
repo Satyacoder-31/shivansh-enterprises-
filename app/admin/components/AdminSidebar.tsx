@@ -18,7 +18,13 @@ import {
   ShieldCheck, 
   ExternalLink,
   LogOut,
-  Wrench
+  Wrench,
+  Camera,
+  Zap,
+  Sun,
+  Building2,
+  PhoneCall,
+  Sliders
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -51,7 +57,13 @@ export default function AdminSidebar({
       group: "Content CMS",
       items: [
         { label: "Homepage CMS", href: "/admin/content/homepage", icon: Layers },
-        { label: "Services", href: "/admin/services", icon: Wrench },
+        { label: "CCTV Surveillance", href: "/admin/content/cctv", icon: Camera },
+        { label: "Architectural LED", href: "/admin/content/led", icon: Zap },
+        { label: "Rooftop Solar", href: "/admin/content/solar", icon: Sun },
+        { label: "About Heritage", href: "/admin/content/about", icon: Building2 },
+        { label: "Contact & Map", href: "/admin/content/contact", icon: PhoneCall },
+        { label: "Page Banners", href: "/admin/content/banners", icon: Sliders },
+        { label: "Services & Disciplines", href: "/admin/services", icon: Wrench },
         { label: "Gallery Portfolio", href: "/admin/gallery", icon: ImageIcon },
       ],
     },

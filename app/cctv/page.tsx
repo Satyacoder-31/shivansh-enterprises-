@@ -1,42 +1,91 @@
 import React from "react";
 import Link from "next/link";
-import { getProducts } from "@/lib/actions/admin";
+import { getProducts, getPageSections } from "@/lib/actions/admin";
 import ProductCard from "@/components/ProductCard";
 
-export const revalidate = 0;
+export const revalidate = 0; // Always serve fresh dynamic content
 
 export default async function CCTVPage() {
-  const cctvProducts = await getProducts({ category: "cctv", status: "published" });
+  const [cctvProducts, sections] = await Promise.all([
+    getProducts({ category: "cctv", status: "published" }),
+    getPageSections("cctv"),
+  ]);
+
+  const heroSec = sections.find((s) => s.section_key === "hero_banner");
+  const standardsSec = sections.find((s) => s.section_key === "standards");
+
+  // Hero Banner Values
+  const heroEyebrow = heroSec?.subtitle || "Surveillance Architecture Division";
+  const heroTitle = heroSec?.title || "PERIMETER SECURITY, ENGINEERED FOR GUJARAT.";
+  const heroDesc = heroSec?.description || 
+    "Industrial-grade 4G solar linkage, BIS-ER & STQC certified IP cameras, and IK10 vandal-proof dome infrastructures designed for residential villas, commercial showrooms, and remote agricultural acreage.";
+  const heroMediaUrl = heroSec?.content?.media_url || "/assets/images/hero/hero-cctv.jpg";
+  const heroMediaType = heroSec?.content?.media_type || (heroMediaUrl.endsWith(".mp4") ? "video" : "image");
+  const heroPrimaryBtnText = heroSec?.content?.primary_btn_text || `View CCTV Hardware (${cctvProducts.length})`;
+  const heroPrimaryBtnUrl = heroSec?.content?.primary_btn_url || "#cctv-hardware";
+  const heroSecondaryBtnText = heroSec?.content?.secondary_btn_text || "Request Perimeter Audit";
+  const heroSecondaryBtnUrl = heroSec?.content?.secondary_btn_url || "/contact";
+
+  // Standards Values
+  const standardsEyebrow = standardsSec?.subtitle || "Core Capabilities";
+  const standardsTitle = standardsSec?.title || "ARCHITECTURAL SURVEILLANCE STANDARDS";
+  const pillars = standardsSec?.content?.pillars || [
+    {
+      num: "01 / Autonomous 4G Solar",
+      title: "10-Day Battery Autonomy",
+      desc: "Complete wire-free surveillance with integrated solar regeneration. Operates 24/7 in remote agricultural farmland without grid electricity."
+    },
+    {
+      num: "02 / Heavy Vandal Impact",
+      title: "IK10 & IP67 Standards",
+      desc: "Solid metal casings built to withstand physical impacts, extreme coastal humidity, torrential rains, and harsh temperature variations."
+    },
+    {
+      num: "03 / Low-Light Starlight",
+      title: "True 120dB WDR",
+      desc: "Full-color nocturnal imagery eliminating headlight glare and shadows. AI human & vehicle classification reduces false alerts."
+    }
+  ];
 
   return (
     <div className="domain-page cctv-page">
       {/* Domain Hero Banner */}
-      <section className="domain-hero-section relative">
-        <div className="domain-hero-bg">
-          <img 
-            src="/assets/images/hero/hero-cctv.jpg" 
-            alt="Enterprise CCTV Surveillance Architecture" 
-            className="hero-bg-media" 
-          />
-          <div className="hero-overlay"></div>
+      <section className="domain-hero-section relative overflow-hidden min-h-[500px] flex items-center">
+        <div className="domain-hero-bg absolute inset-0 z-0">
+          {heroMediaType === "video" ? (
+            <video 
+              src={heroMediaUrl} 
+              autoPlay 
+              muted 
+              loop 
+              playsInline 
+              className="hero-bg-media w-full h-full object-cover" 
+            />
+          ) : (
+            <img 
+              src={heroMediaUrl} 
+              alt="Enterprise CCTV Surveillance Architecture" 
+              className="hero-bg-media w-full h-full object-cover" 
+            />
+          )}
+          <div className="hero-overlay absolute inset-0 bg-black/65"></div>
         </div>
+
         <div className="container relative z-10 py-24">
           <div className="max-w-2xl">
-            <div className="eyebrow text-gold">Surveillance Architecture Division</div>
-            <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4">
-              PERIMETER SECURITY, <br />
-              <span className="text-gold-gradient">ENGINEERED FOR GUJARAT.</span>
+            <div className="eyebrow text-gold mb-2">{heroEyebrow}</div>
+            <h1 className="serif-heading section-title text-4xl md:text-5xl mb-4 text-white">
+              {heroTitle}
             </h1>
             <p className="text-secondary text-lg mb-8 leading-relaxed">
-              Industrial-grade 4G solar linkage, BIS-ER & STQC certified IP cameras, and IK10 vandal-proof 
-              dome infrastructures designed for residential villas, commercial showrooms, and remote agricultural acreage.
+              {heroDesc}
             </p>
-            <div className="flex gap-4">
-              <a href="#cctv-hardware" className="btn btn-gold">
-                View CCTV Hardware ({cctvProducts.length})
+            <div className="flex flex-wrap gap-4">
+              <a href={heroPrimaryBtnUrl} className="btn btn-gold">
+                {heroPrimaryBtnText}
               </a>
-              <Link href="/contact" className="btn btn-gold-outline">
-                Request Perimeter Audit
+              <Link href={heroSecondaryBtnUrl} className="btn btn-gold-outline">
+                {heroSecondaryBtnText}
               </Link>
             </div>
           </div>
@@ -47,34 +96,24 @@ export default async function CCTVPage() {
       <section className="section-pad bg-surface">
         <div className="container">
           <div className="section-header text-center mb-12">
-            <div className="eyebrow text-gold">Core Capabilities</div>
-            <h2 className="serif-heading section-title">ARCHITECTURAL SURVEILLANCE STANDARDS</h2>
+            <div className="eyebrow text-gold">{standardsEyebrow}</div>
+            <h2 className="serif-heading section-title">{standardsTitle}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 bg-carbon-800 rounded border border-gold/20">
-              <span className="text-gold text-2xl font-bold mb-3 block">01 / Autonomous 4G Solar</span>
-              <h3 className="text-xl font-serif mb-2">10-Day Battery Autonomy</h3>
-              <p className="text-secondary text-sm">
-                Complete wire-free surveillance with integrated solar regeneration. Operates 24/7 in remote agricultural farmland without grid electricity.
-              </p>
-            </div>
-
-            <div className="p-6 bg-carbon-800 rounded border border-gold/20">
-              <span className="text-gold text-2xl font-bold mb-3 block">02 / Heavy Vandal Impact</span>
-              <h3 className="text-xl font-serif mb-2">IK10 & IP67 Standards</h3>
-              <p className="text-secondary text-sm">
-                Solid metal casings built to withstand physical impacts, extreme coastal humidity, torrential rains, and harsh temperature variations.
-              </p>
-            </div>
-
-            <div className="p-6 bg-carbon-800 rounded border border-gold/20">
-              <span className="text-gold text-2xl font-bold mb-3 block">03 / Low-Light Starlight</span>
-              <h3 className="text-xl font-serif mb-2">True 120dB WDR</h3>
-              <p className="text-secondary text-sm">
-                Full-color nocturnal imagery eliminating headlight glare and shadows. AI human & vehicle classification reduces false alerts.
-              </p>
-            </div>
+            {pillars.map((p: any, idx: number) => (
+              <div key={idx} className="p-6 bg-carbon-800 rounded border border-gold/20 flex flex-col justify-between">
+                <div>
+                  <span className="text-gold text-sm font-mono font-bold mb-3 block">
+                    {p.num || `0${idx + 1}`}
+                  </span>
+                  <h3 className="text-xl font-serif mb-2 text-white">{p.title}</h3>
+                  <p className="text-secondary text-sm leading-relaxed">
+                    {p.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
