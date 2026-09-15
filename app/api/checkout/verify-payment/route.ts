@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Verify HMAC Signature
-    const isValid = verifyRazorpaySignature(
+    const isValid = await verifyRazorpaySignature(
       razorpay_order_id || '',
       razorpay_payment_id || '',
       razorpay_signature || ''

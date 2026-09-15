@@ -84,17 +84,35 @@ export default function CheckoutPage() {
     }
   };
 
-  // Load Razorpay standard script
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+  // Resilient loader for official Razorpay Checkout SDK
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined") {
+        resolve(false);
+        return;
       }
-    };
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve(true));
+        existingScript.addEventListener("error", () => resolve(false));
+        setTimeout(() => resolve(Boolean((window as any).Razorpay)), 600);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  useEffect(() => {
+    loadRazorpayScript();
   }, []);
 
   const handleProceedToPayment = async (e: React.FormEvent) => {
@@ -115,7 +133,7 @@ export default function CheckoutPage() {
     setPaymentError("");
 
     try {
-      // 1. Create Razorpay order on server
+      // 1. Create Razorpay order on server (Live or Sandbox based on Admin configuration)
       const createRes = await fetch("/api/checkout/create-razorpay-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,8 +152,13 @@ export default function CheckoutPage() {
 
       const { razorpay_order, order_id, order_number } = orderData;
 
-      // 2. If running with real Razorpay keys and window.Razorpay is available
-      if (typeof window !== "undefined" && (window as any).Razorpay && !razorpay_order.is_mock) {
+      // 2. Real Razorpay Gateway Mode (Live or official Razorpay Test Mode)
+      if (!razorpay_order.is_mock) {
+        const isLoaded = await loadRazorpayScript();
+        if (!isLoaded || !(window as any).Razorpay) {
+          throw new Error("Unable to load Razorpay payment window. Please check your internet connection or disable ad blockers.");
+        }
+
         const options = {
           key: razorpay_order.key_id,
           amount: razorpay_order.amount,
@@ -153,7 +176,7 @@ export default function CheckoutPage() {
             color: "#D4A63A",
           },
           handler: async function (response: any) {
-            // 3. Verify Payment
+            // 3. Verify Payment Signature & Confirm Order
             await completePaymentVerification({
               order_id,
               order_number,
@@ -171,13 +194,12 @@ export default function CheckoutPage() {
 
         const rzp = new (window as any).Razorpay(options);
         rzp.on("payment.failed", function (response: any) {
-          setPaymentError(response.error.description || "Payment was declined by your bank or UPI app.");
+          setPaymentError(response.error?.description || "Payment was declined by your bank or UPI app.");
           setIsProcessing(false);
         });
         rzp.open();
       } else {
-        // Razorpay keys are currently empty/unconfigured (as requested)
-        // Show simulation modal so the user can test the entire payment & order completion right away!
+        // 3. Interactive Sandbox Simulator Mode (When Admin selects Test Mode without test keys)
         setShowSimModal({
           order_id,
           order_number,
@@ -586,8 +608,8 @@ export default function CheckoutPage() {
               </div>
 
               <div className="p-4 bg-gold/10 border border-gold/20 rounded-lg text-xs leading-relaxed text-secondary">
-                <strong className="text-gold block mb-1">Testing Mode Active</strong>
-                Razorpay live credentials are kept empty as requested. This simulator allows you to experience the complete payment success, automated database record, and NimbusPost courier booking flow.
+                <strong className="text-gold block mb-1">Sandbox Testing Environment</strong>
+                Test mode is currently selected in store administration. This sandbox simulator allows you to experience the complete payment success, automated database record, and NimbusPost courier booking flow without charging real cards or UPI. Switch to &quot;Live Production&quot; in Admin Settings for real transactions.
               </div>
 
               <div className="bg-carbon-900 p-4 rounded border border-gold/15 space-y-2 text-xs">
