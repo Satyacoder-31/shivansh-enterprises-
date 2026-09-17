@@ -19,10 +19,26 @@ export async function POST(req: Request) {
 
     // 1. Fetch products from database to ensure genuine, tamper-proof prices and weights
     const productIds = cart.map((item: any) => item.product.id);
-    const { data: dbProducts, error: prodErr } = await supabase
+    let dbProducts: any[] | null = null;
+    let prodErr: any = null;
+
+    const initialFetch = await supabase
       .from('products')
       .select('id, name, model, sku, price_value, weight_kg')
       .in('id', productIds);
+
+    dbProducts = initialFetch.data;
+    prodErr = initialFetch.error;
+
+    // Fallback if weight_kg column hasn't been added to Supabase yet
+    if (prodErr && (prodErr.message?.includes('weight_kg') || prodErr.code === '42703' || prodErr.code === 'PGRST204')) {
+      const retry = await supabase
+        .from('products')
+        .select('id, name, model, sku, price_value')
+        .in('id', productIds);
+      dbProducts = retry.data;
+      prodErr = retry.error;
+    }
 
     if (prodErr || !dbProducts) {
       throw new Error('Unable to verify product pricing from catalog.');

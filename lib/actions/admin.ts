@@ -216,15 +216,23 @@ export async function saveProduct(
   const id = productData.id || productData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
 
   // Insert or Update product
-  const productPayload = {
+  const productPayload: any = {
     ...productData,
     id,
     updated_at: new Date().toISOString()
   };
 
-  const { error: prodError } = await supabase
+  let { error: prodError } = await supabase
     .from('products')
     .upsert(productPayload);
+
+  // Fallback: If weight_kg column has not been added to Supabase yet, retry without weight_kg so product saves cleanly
+  if (prodError && (prodError.message?.includes('weight_kg') || prodError.code === '42703' || prodError.code === 'PGRST204')) {
+    console.warn("Notice: products.weight_kg column not yet found in database. Retrying without weight_kg...");
+    const { weight_kg, ...fallbackPayload } = productPayload;
+    const retry = await supabase.from('products').upsert(fallbackPayload);
+    prodError = retry.error;
+  }
 
   if (prodError) throw new Error(prodError.message);
 
