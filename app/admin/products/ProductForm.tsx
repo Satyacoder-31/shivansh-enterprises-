@@ -16,6 +16,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const [formData, setFormData] = useState({
     name: initialProduct?.name || "",
@@ -27,9 +28,8 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     purchase_mode: initialProduct?.purchase_mode || "contact_for_price",
     price_display: initialProduct?.price_display || "Contact for Price",
     price_value: initialProduct?.price_value || "",
-    weight_kg: (initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null && Number(initialProduct?.weight_kg) > 0)
-      ? String(initialProduct.weight_kg)
-      : (initialProduct?.specs?.find((s) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight')?.spec_value || "1.0"),
+    weight_kg: (initialProduct?.specs?.find((s) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight')?.spec_value)
+      || (initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null && Number(initialProduct?.weight_kg) > 0 ? String(initialProduct.weight_kg) : "1.0"),
     rating: initialProduct?.rating || 5.0,
     in_stock: initialProduct?.in_stock !== false,
     main_image: initialProduct?.main_image || "/assets/images/products/cofe-4g-solar-camera.jpg",
@@ -143,9 +143,13 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
       const validFeatures = features.filter((f) => f.trim());
       const validGalleryImages = galleryImages.filter((img) => img.trim());
 
+      setSuccessMsg("");
       await saveProduct(productPayload, validSpecs, validFeatures, validGalleryImages);
-      router.push("/admin/products");
+      setSuccessMsg(`Product details & shipping weight (${formData.weight_kg || '1.0'} kg) saved successfully!`);
       router.refresh();
+      setTimeout(() => {
+        router.push("/admin/products");
+      }, 1200);
     } catch (err: any) {
       setError(err.message || "Failed to save product.");
     } finally {
@@ -172,6 +176,18 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           {loading ? "Persisting to Supabase..." : initialProduct ? "Update Product" : "Publish Product"}
         </button>
       </div>
+
+      {successMsg && (
+        <div className="p-4 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 rounded text-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span>✅</span>
+            <span>{successMsg}</span>
+          </div>
+          <Link href="/admin/products" className="underline text-xs text-white hover:text-gold">
+            Return to Catalog →
+          </Link>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-900/30 border border-red-500/40 text-red-300 rounded text-sm">

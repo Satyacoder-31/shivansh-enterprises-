@@ -159,11 +159,12 @@ export async function deleteHeroSlide(id: string) {
 
 function attachWeightToProduct(product: any): any {
   if (!product) return product;
-  if (product.weight_kg !== undefined && product.weight_kg !== null && Number(product.weight_kg) > 0) {
-    return product;
-  }
+
+  // 1. Check if an explicit weight was stored in product_specs (__weight_kg or "shipping weight")
   if (product.specs && Array.isArray(product.specs)) {
-    const wSpec = product.specs.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+    const wSpec = product.specs.find((s: any) => 
+      s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight'
+    );
     if (wSpec && wSpec.spec_value) {
       const parsed = parseFloat(wSpec.spec_value);
       if (!isNaN(parsed) && parsed > 0) {
@@ -172,7 +173,15 @@ function attachWeightToProduct(product: any): any {
       }
     }
   }
-  product.weight_kg = product.weight_kg || 1.0;
+
+  // 2. Check if weight_kg exists on the table row
+  if (product.weight_kg !== undefined && product.weight_kg !== null && Number(product.weight_kg) > 0) {
+    product.weight_kg = Number(product.weight_kg);
+    return product;
+  }
+
+  // 3. Fallback default
+  product.weight_kg = 1.0;
   return product;
 }
 
@@ -235,26 +244,26 @@ export async function saveProduct(
   const id = productData.id || productData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
   const weightKg = Number(productData.weight_kg) > 0 ? Number(productData.weight_kg) : 1.0;
 
-  // Insert or Update product
+  // Separate weight_kg from core product payload to avoid schema errors if column is not yet present
+  const { weight_kg, ...coreProductData } = productData as any;
   const productPayload: any = {
-    ...productData,
+    ...coreProductData,
     id,
     updated_at: new Date().toISOString()
   };
 
-  let { error: prodError } = await supabase
+  const { error: prodError } = await supabase
     .from('products')
     .upsert(productPayload);
 
-  // Fallback: If weight_kg column has not been added to Supabase yet, retry without weight_kg so product saves cleanly
-  if (prodError && (prodError.message?.includes('weight_kg') || prodError.code === '42703' || prodError.code === 'PGRST204')) {
-    console.warn("Notice: products.weight_kg column not yet found in database. Retrying without weight_kg...");
-    const { weight_kg, ...fallbackPayload } = productPayload;
-    const retry = await supabase.from('products').upsert(fallbackPayload);
-    prodError = retry.error;
-  }
-
   if (prodError) throw new Error(prodError.message);
+
+  // Optional: Update products.weight_kg column directly if it exists in table schema
+  try {
+    await supabase.from('products').update({ weight_kg: weightKg }).eq('id', id);
+  } catch {
+    // Gracefully ignore if column does not exist
+  }
 
   // Always store weight in product_specs for guaranteed persistence across all database configurations
   const cleanedSpecs = specs.filter((s) => !s.spec_name.startsWith('__') && s.spec_name.toLowerCase() !== 'shipping weight');
@@ -272,7 +281,10 @@ export async function saveProduct(
       spec_value: s.spec_value,
       display_order: idx + 1
     }));
-    await supabase.from('product_specs').insert(specRows);
+    const { error: specErr } = await supabase.from('product_specs').insert(specRows);
+    if (specErr) {
+      console.error("Error inserting product specs:", specErr);
+    }
   }
 
   // Update Features
@@ -304,10 +316,47 @@ export async function saveProduct(
     await supabase.from('product_images').insert(imageRows);
   }
 
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/admin/products', 'layout');
   revalidatePath('/shop');
   revalidatePath(`/product-details/${id}`);
+  revalidatePath('/checkout');
   revalidatePath('/');
-  return { success: true, id };
+  return { success: true, id, weight_kg: weightKg };
+}
+
+export async function updateProductWeight(id: string, weightKg: number) {
+  const supabase = createAdminClient();
+  const safeWeight = Math.max(0.05, Math.round(Number(weightKg) * 100) / 100 || 1.0);
+
+  // Optional: Try updating products table column if present
+  try {
+    await supabase.from('products').update({ weight_kg: safeWeight }).eq('id', id);
+  } catch {
+    // ignore
+  }
+
+  // Always persist in product_specs for 100% reliable storage
+  await supabase.from('product_specs').delete().eq('product_id', id).eq('spec_name', '__weight_kg');
+  const { error } = await supabase.from('product_specs').insert({
+    product_id: id,
+    spec_name: '__weight_kg',
+    spec_value: String(safeWeight),
+    display_order: 99
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/admin/products', 'layout');
+  revalidatePath('/shop');
+  revalidatePath(`/product-details/${id}`);
+  revalidatePath('/checkout');
+  revalidatePath('/');
+
+  return { success: true, weight_kg: safeWeight };
 }
 
 export async function deleteProduct(id: string) {

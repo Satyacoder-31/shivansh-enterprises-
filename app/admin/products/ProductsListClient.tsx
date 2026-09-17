@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
-import { deleteProduct, toggleProductStock } from "@/lib/actions/admin";
-import { Plus, Search, Edit3, Trash2, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { deleteProduct, toggleProductStock, updateProductWeight } from "@/lib/actions/admin";
+import { Plus, Search, Edit3, Trash2, CheckCircle2, XCircle, ExternalLink, Check, X } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export default function ProductsListClient({ initialProducts }: { initialProducts: Product[] }) {
@@ -14,6 +14,35 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Quick weight inline edit state
+  const [editingWeightId, setEditingWeightId] = useState<string | null>(null);
+  const [tempWeight, setTempWeight] = useState<string>("");
+  const [savingWeightId, setSavingWeightId] = useState<string | null>(null);
+
+  const startEditWeight = (product: Product) => {
+    setEditingWeightId(product.id);
+    setTempWeight(String(product.weight_kg ? Number(product.weight_kg) : 1.0));
+  };
+
+  const handleSaveWeight = async (productId: string) => {
+    const val = parseFloat(tempWeight);
+    if (isNaN(val) || val <= 0) {
+      alert("Please enter a valid numeric weight in kg (e.g. 0.5 or 15.0)");
+      return;
+    }
+    setSavingWeightId(productId);
+    try {
+      await updateProductWeight(productId, val);
+      setProducts(products.map(p => p.id === productId ? { ...p, weight_kg: val } : p));
+      setEditingWeightId(null);
+      router.refresh();
+    } catch (err: any) {
+      alert("Failed to update weight: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingWeightId(null);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -115,6 +144,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
               <tr>
                 <th className="py-3 px-4">Hardware Item</th>
                 <th className="py-3 px-4">Discipline</th>
+                <th className="py-3 px-4">Package Weight</th>
                 <th className="py-3 px-4">Pricing Mode</th>
                 <th className="py-3 px-4">Stock Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -123,7 +153,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
             <tbody className="divide-y divide-gold/10">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted">
+                  <td colSpan={6} className="py-8 text-center text-muted">
                     No hardware records found matching current query.
                   </td>
                 </tr>
@@ -152,6 +182,53 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                       <span className="px-2 py-0.5 rounded bg-gold/10 text-gold border border-gold/20 text-[10px] uppercase font-bold">
                         {product.category_id}
                       </span>
+                    </td>
+
+                    <td className="py-3 px-4">
+                      {editingWeightId === product.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0.05"
+                            value={tempWeight}
+                            onChange={(e) => setTempWeight(e.target.value)}
+                            className="w-20 bg-carbon-900 border border-gold/40 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-gold"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSaveWeight(product.id);
+                              if (e.key === "Escape") setEditingWeightId(null);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            disabled={savingWeightId === product.id}
+                            onClick={() => handleSaveWeight(product.id)}
+                            className="p-1 rounded bg-gold text-black hover:bg-gold-light transition-colors"
+                            title="Save weight"
+                          >
+                            <Check size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingWeightId(null)}
+                            className="p-1 rounded bg-carbon-900 text-muted hover:text-white"
+                            title="Cancel"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => startEditWeight(product)}
+                          className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-mono font-bold hover:bg-amber-500/20 hover:border-amber-400 transition-colors"
+                          title="Click to quickly edit package shipping weight (kg)"
+                        >
+                          <span>⚖️ {product.weight_kg ? Number(product.weight_kg) : 1.0} kg</span>
+                          <Edit3 size={11} className="opacity-0 group-hover:opacity-100 text-gold transition-opacity" />
+                        </button>
+                      )}
                     </td>
 
                     <td className="py-3 px-4">

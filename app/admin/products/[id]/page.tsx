@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getProductById } from "@/lib/actions/admin";
 import ProductForm from "../ProductForm";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 interface PageProps {

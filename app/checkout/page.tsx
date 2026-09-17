@@ -44,7 +44,14 @@ export default function CheckoutPage() {
     0.5,
     Math.round(
       cart.reduce((acc, item) => {
-        const itemWeight = Number(item.product.weight_kg) > 0 ? Number(item.product.weight_kg) : 1.0;
+        let itemWeight = Number(item.product.weight_kg) > 0 ? Number(item.product.weight_kg) : 0;
+        if (!itemWeight && item.product.specs && Array.isArray(item.product.specs)) {
+          const wSpec = item.product.specs.find((s) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+          if (wSpec && wSpec.spec_value) {
+            itemWeight = parseFloat(wSpec.spec_value) || 0;
+          }
+        }
+        if (!itemWeight || isNaN(itemWeight)) itemWeight = 1.0;
         return acc + itemWeight * item.quantity;
       }, 0) * 100
     ) / 100
