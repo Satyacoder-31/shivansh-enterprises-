@@ -9,5 +9,6 @@ out/
 scripts/
 .env*.local
 .env
+*.tsbuildinfo
 
 

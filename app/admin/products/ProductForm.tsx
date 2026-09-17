@@ -27,6 +27,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     purchase_mode: initialProduct?.purchase_mode || "contact_for_price",
     price_display: initialProduct?.price_display || "Contact for Price",
     price_value: initialProduct?.price_value || "",
+    weight_kg: initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null ? String(initialProduct.weight_kg) : "1.0",
     rating: initialProduct?.rating || 5.0,
     in_stock: initialProduct?.in_stock !== false,
     main_image: initialProduct?.main_image || "/assets/images/products/cofe-4g-solar-camera.jpg",
@@ -122,6 +123,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           ? `₹${formData.price_value}` 
           : formData.price_display,
         price_value: formData.price_value ? Number(formData.price_value) : null,
+        weight_kg: formData.weight_kg ? Number(formData.weight_kg) : 1.0,
         rating: Number(formData.rating),
         in_stock: Boolean(formData.in_stock),
         main_image: formData.main_image,
@@ -319,6 +321,25 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
               value={formData.price_value}
               onChange={(e) => setFormData({ ...formData, price_value: e.target.value })}
             />
+          </div>
+
+          <div>
+            <label className="form-label text-xs flex items-center justify-between">
+              <span>Package Weight (kg)</span>
+              <span className="text-[10px] text-gold font-normal">Shiprocket Courier Calculation</span>
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.05"
+              placeholder="e.g. 1.0 or 15.5"
+              className="form-input text-sm font-mono"
+              value={formData.weight_kg}
+              onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
+            />
+            <span className="text-[10px] text-neutral-400 mt-1 block">
+              Actual packaged dead/volumetric weight. Used for live per-kg courier freight rates.
+            </span>
           </div>
         </div>
 

@@ -17,11 +17,11 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
 
-    // 1. Fetch products from database to ensure genuine, tamper-proof prices
+    // 1. Fetch products from database to ensure genuine, tamper-proof prices and weights
     const productIds = cart.map((item: any) => item.product.id);
     const { data: dbProducts, error: prodErr } = await supabase
       .from('products')
-      .select('id, name, model, sku, price_value')
+      .select('id, name, model, sku, price_value, weight_kg')
       .in('id', productIds);
 
     if (prodErr || !dbProducts) {
@@ -31,11 +31,15 @@ export async function POST(req: Request) {
     const priceMap = new Map<string, any>(dbProducts.map(p => [p.id, p]));
 
     let calculatedSubtotal = 0;
+    let totalOrderWeightKg = 0;
     const validatedItems = cart.map((item: any) => {
       const dbProd = priceMap.get(item.product.id);
       const unitPrice = dbProd?.price_value || item.product.price_value || 0;
       const itemTotal = unitPrice * item.quantity;
       calculatedSubtotal += itemTotal;
+
+      const itemWeight = Number(dbProd?.weight_kg) > 0 ? Number(dbProd.weight_kg) : 1.0;
+      totalOrderWeightKg += itemWeight * item.quantity;
 
       return {
         product_id: item.product.id,
@@ -46,6 +50,8 @@ export async function POST(req: Request) {
         total: itemTotal,
       };
     });
+
+    totalOrderWeightKg = Math.max(0.5, Math.round(totalOrderWeightKg * 100) / 100);
 
     const taxAmount = Math.round(calculatedSubtotal * 0.18);
     const shippingFee = Math.max(0, Number(courier?.total_charge || courier?.freight_charge || 0));
@@ -62,6 +68,7 @@ export async function POST(req: Request) {
         customer_phone: customer.phone,
         courier_partner: courier?.courier_name || 'Standard Courier',
         destination_pincode: customer.pincode,
+        package_weight: `${totalOrderWeightKg} kg`,
       },
     });
 
@@ -89,7 +96,8 @@ export async function POST(req: Request) {
         notes: [
           notes || '',
           `Delivery Partner: ${courier?.courier_name || 'Shiprocket Partner'} (Est: ${courier?.estimated_delivery_days || 'Standard'})`,
-          `Freight: ₹${shippingFee}`
+          `Freight: ₹${shippingFee}`,
+          `Package Weight: ${totalOrderWeightKg} kg`,
         ].filter(Boolean).join(' | '),
       }])
       .select()

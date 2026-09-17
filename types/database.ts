@@ -108,6 +108,7 @@ export interface Product {
   in_stock: boolean;
   stock_quantity?: number;
   sku: string | null;
+  weight_kg?: number | null;
   main_image: string;
   short_desc: string | null;
   tagline: string | null;

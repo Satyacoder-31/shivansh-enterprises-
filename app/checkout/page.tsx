@@ -39,8 +39,16 @@ export default function CheckoutPage() {
   const shippingFee = selectedCourier ? selectedCourier.total_charge : 0;
   const finalTotal = subtotal + tax + shippingFee;
 
-  // Total weight estimate (defaulting to 1kg per item)
-  const totalWeightKg = cart.reduce((acc, item) => acc + (1.0 * item.quantity), 0);
+  // Total package weight calculated from individual product weight_kg (defaulting to 1.0kg if unset)
+  const totalWeightKg = Math.max(
+    0.5,
+    Math.round(
+      cart.reduce((acc, item) => {
+        const itemWeight = Number(item.product.weight_kg) > 0 ? Number(item.product.weight_kg) : 1.0;
+        return acc + itemWeight * item.quantity;
+      }, 0) * 100
+    ) / 100
+  );
 
   // Auto-fetch Shiprocket couriers when pincode reaches 6 digits
   useEffect(() => {
@@ -519,7 +527,9 @@ export default function CheckoutPage() {
                         />
                         <div className="min-w-0">
                           <p className="font-medium text-white truncate max-w-[170px]">{product.name}</p>
-                          <p className="text-[10px] text-muted">Qty: {quantity}</p>
+                          <p className="text-[10px] text-muted">
+                            Qty: {quantity} • {Number(product.weight_kg) > 0 ? product.weight_kg : 1.0} kg each
+                          </p>
                         </div>
                       </div>
                       <span className="font-mono text-secondary shrink-0">
@@ -534,6 +544,11 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-secondary">
                     <span>Hardware Subtotal:</span>
                     <span className="font-mono">{formatPrice(subtotal)}</span>
+                  </div>
+
+                  <div className="flex justify-between text-secondary text-xs">
+                    <span>Shipment Weight:</span>
+                    <span className="font-mono text-neutral-300 font-medium">{totalWeightKg.toFixed(2)} kg</span>
                   </div>
 
                   <div className="flex justify-between text-secondary">

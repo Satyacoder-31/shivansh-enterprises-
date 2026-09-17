@@ -91,6 +91,11 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           <span className="stock-pill in-stock ml-3">
             {product.in_stock ? "Authentic Stock Available" : "Special Order"}
           </span>
+          {Number(product.weight_kg) > 0 && (
+            <span className="stock-pill ml-2 border border-gold/30 bg-gold/10 text-gold text-xs">
+              ⚖️ {product.weight_kg} kg Ship Weight
+            </span>
+          )}
         </div>
 
         {product.tagline && (
