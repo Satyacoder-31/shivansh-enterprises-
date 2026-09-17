@@ -157,6 +157,25 @@ export async function deleteHeroSlide(id: string) {
   return { success: true };
 }
 
+function attachWeightToProduct(product: any): any {
+  if (!product) return product;
+  if (product.weight_kg !== undefined && product.weight_kg !== null && Number(product.weight_kg) > 0) {
+    return product;
+  }
+  if (product.specs && Array.isArray(product.specs)) {
+    const wSpec = product.specs.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+    if (wSpec && wSpec.spec_value) {
+      const parsed = parseFloat(wSpec.spec_value);
+      if (!isNaN(parsed) && parsed > 0) {
+        product.weight_kg = parsed;
+        return product;
+      }
+    }
+  }
+  product.weight_kg = product.weight_kg || 1.0;
+  return product;
+}
+
 // ============================================================================
 // PRODUCTS
 // ============================================================================
@@ -185,7 +204,7 @@ export async function getProducts(options?: { category?: string; status?: string
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return data || [];
+  return (data || []).map(attachWeightToProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -203,7 +222,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     .single();
 
   if (error) return null;
-  return data;
+  return attachWeightToProduct(data);
 }
 
 export async function saveProduct(
@@ -214,6 +233,7 @@ export async function saveProduct(
 ) {
   const supabase = createAdminClient();
   const id = productData.id || productData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
+  const weightKg = Number(productData.weight_kg) > 0 ? Number(productData.weight_kg) : 1.0;
 
   // Insert or Update product
   const productPayload: any = {
@@ -236,10 +256,17 @@ export async function saveProduct(
 
   if (prodError) throw new Error(prodError.message);
 
+  // Always store weight in product_specs for guaranteed persistence across all database configurations
+  const cleanedSpecs = specs.filter((s) => !s.spec_name.startsWith('__') && s.spec_name.toLowerCase() !== 'shipping weight');
+  cleanedSpecs.push({
+    spec_name: '__weight_kg',
+    spec_value: String(weightKg)
+  });
+
   // Update Specs
   await supabase.from('product_specs').delete().eq('product_id', id);
-  if (specs.length > 0) {
-    const specRows = specs.map((s, idx) => ({
+  if (cleanedSpecs.length > 0) {
+    const specRows = cleanedSpecs.map((s, idx) => ({
       product_id: id,
       spec_name: s.spec_name,
       spec_value: s.spec_value,

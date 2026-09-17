@@ -56,11 +56,21 @@ export async function POST(req: Request) {
         const prodIds = orderItems.map((i: any) => i.product_id).filter(Boolean);
         const { data: prods } = await supabase
           .from('products')
-          .select('id, weight_kg')
+          .select(`
+            id,
+            specs:product_specs(spec_name, spec_value)
+          `)
           .in('id', prodIds);
 
         if (prods && prods.length > 0) {
-          const wMap = new Map(prods.map((p: any) => [p.id, Number(p.weight_kg) || 1.0]));
+          const wMap = new Map(prods.map((p: any) => {
+            let w = Number(p.weight_kg);
+            if (!w || isNaN(w)) {
+              const wSpec = p.specs?.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+              w = wSpec ? parseFloat(wSpec.spec_value) : 1.0;
+            }
+            return [p.id, !isNaN(w) && w > 0 ? w : 1.0];
+          }));
           const computedW = orderItems.reduce((acc: number, it: any) => {
             const w = wMap.get(it.product_id) || 1.0;
             return acc + w * (it.quantity || 1);

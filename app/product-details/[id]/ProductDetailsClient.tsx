@@ -197,7 +197,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             <div className="specs-table-container border border-gold/20 rounded overflow-hidden">
               <table className="w-full text-left text-sm">
                 <tbody>
-                  {product.specs.map((s, idx) => (
+                  {product.specs.filter((s) => !s.spec_name.startsWith('__')).map((s, idx) => (
                     <tr 
                       key={idx} 
                       className={idx % 2 === 0 ? "bg-surface/50" : "bg-transparent"}

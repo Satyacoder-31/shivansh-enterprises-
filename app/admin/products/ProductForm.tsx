@@ -27,7 +27,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     purchase_mode: initialProduct?.purchase_mode || "contact_for_price",
     price_display: initialProduct?.price_display || "Contact for Price",
     price_value: initialProduct?.price_value || "",
-    weight_kg: initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null ? String(initialProduct.weight_kg) : "1.0",
+    weight_kg: (initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null && Number(initialProduct?.weight_kg) > 0)
+      ? String(initialProduct.weight_kg)
+      : (initialProduct?.specs?.find((s) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight')?.spec_value || "1.0"),
     rating: initialProduct?.rating || 5.0,
     in_stock: initialProduct?.in_stock !== false,
     main_image: initialProduct?.main_image || "/assets/images/products/cofe-4g-solar-camera.jpg",
@@ -40,7 +42,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
   });
 
   const [specs, setSpecs] = useState<{ spec_name: string; spec_value: string }[]>(
-    initialProduct?.specs?.map((s) => ({ spec_name: s.spec_name, spec_value: s.spec_value })) || [
+    initialProduct?.specs
+      ?.filter((s) => !s.spec_name.startsWith('__') && s.spec_name.toLowerCase() !== 'shipping weight')
+      .map((s) => ({ spec_name: s.spec_name, spec_value: s.spec_value })) || [
       { spec_name: "Resolution", spec_value: "4 Megapixel Full HD" },
       { spec_name: "Power Source", spec_value: "Solar Panel with Inbuilt Battery" }
     ]

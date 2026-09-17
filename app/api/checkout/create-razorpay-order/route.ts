@@ -34,7 +34,10 @@ export async function POST(req: Request) {
     if (prodErr && (prodErr.message?.includes('weight_kg') || prodErr.code === '42703' || prodErr.code === 'PGRST204')) {
       const retry = await supabase
         .from('products')
-        .select('id, name, model, sku, price_value')
+        .select(`
+          id, name, model, sku, price_value,
+          specs:product_specs(spec_name, spec_value)
+        `)
         .in('id', productIds);
       dbProducts = retry.data;
       prodErr = retry.error;
@@ -54,7 +57,13 @@ export async function POST(req: Request) {
       const itemTotal = unitPrice * item.quantity;
       calculatedSubtotal += itemTotal;
 
-      const itemWeight = Number(dbProd?.weight_kg) > 0 ? Number(dbProd.weight_kg) : 1.0;
+      let itemWeight = Number(dbProd?.weight_kg);
+      if (!itemWeight || isNaN(itemWeight)) {
+        const wSpec = dbProd?.specs?.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+        itemWeight = wSpec ? parseFloat(wSpec.spec_value) : 1.0;
+      }
+      if (!itemWeight || isNaN(itemWeight)) itemWeight = 1.0;
+
       totalOrderWeightKg += itemWeight * item.quantity;
 
       return {
