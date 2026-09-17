@@ -114,6 +114,22 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     try {
       if (!formData.name.trim()) throw new Error("Product name is required.");
 
+      let safePriceVal: number | null = null;
+      if (formData.price_value !== undefined && formData.price_value !== null && String(formData.price_value).trim() !== "") {
+        const parsed = parseFloat(String(formData.price_value).replace(/[^0-9.]/g, ''));
+        if (!isNaN(parsed) && parsed > 0) {
+          safePriceVal = Math.round(parsed);
+        }
+      }
+
+      const safePurchaseMode = safePriceVal !== null && safePriceVal > 0 
+        ? "buy_online" 
+        : (formData.purchase_mode as any);
+
+      const safePriceDisplay = safePriceVal !== null && safePriceVal > 0
+        ? `₹${safePriceVal.toLocaleString('en-IN')}`
+        : (formData.price_display || "Contact for Price");
+
       const productPayload: Partial<Product> = {
         ...(initialProduct?.id ? { id: initialProduct.id } : {}),
         name: formData.name,
@@ -122,11 +138,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         category_id: formData.category_id,
         sub_category: formData.sub_category || null,
         badge: formData.badge || null,
-        purchase_mode: formData.purchase_mode as any,
-        price_display: formData.purchase_mode === "buy_online" && formData.price_value 
-          ? `₹${formData.price_value}` 
-          : formData.price_display,
-        price_value: formData.price_value ? Number(formData.price_value) : null,
+        purchase_mode: safePurchaseMode,
+        price_display: safePriceDisplay,
+        price_value: safePriceVal,
         weight_kg: formData.weight_kg ? Number(formData.weight_kg) : 1.0,
         rating: Number(formData.rating),
         in_stock: Boolean(formData.in_stock),
@@ -335,12 +349,25 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           <div>
             <label className="form-label text-xs">Price Value in INR (Numeric)</label>
             <input
-              type="number"
+              type="text"
               placeholder="e.g. 14999"
-              className="form-input text-sm"
+              className="form-input text-sm font-mono"
               value={formData.price_value}
-              onChange={(e) => setFormData({ ...formData, price_value: e.target.value })}
+              onChange={(e) => {
+                const val = e.target.value;
+                const clean = val.replace(/[^0-9.]/g, "");
+                const num = parseFloat(clean);
+                setFormData({
+                  ...formData,
+                  price_value: val,
+                  price_display: !isNaN(num) && num > 0 ? `₹${Math.round(num).toLocaleString('en-IN')}` : formData.price_display,
+                  purchase_mode: !isNaN(num) && num > 0 ? "buy_online" : formData.purchase_mode
+                });
+              }}
             />
+            <span className="text-[10px] text-neutral-400 mt-1 block">
+              Direct checkout selling price in INR (e.g. 1650 or 5899).
+            </span>
           </div>
 
           <div>

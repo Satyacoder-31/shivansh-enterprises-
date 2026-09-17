@@ -244,11 +244,34 @@ export async function saveProduct(
   const id = productData.id || productData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
   const weightKg = Number(productData.weight_kg) > 0 ? Number(productData.weight_kg) : 1.0;
 
+  // Parse and sanitize price_value safely
+  let safePrice: number | null = null;
+  if (productData.price_value !== undefined && productData.price_value !== null && String(productData.price_value).trim() !== "") {
+    const cleanNum = parseFloat(String(productData.price_value).replace(/[^0-9.]/g, ""));
+    if (!isNaN(cleanNum) && cleanNum >= 0) {
+      safePrice = Math.round(cleanNum);
+    }
+  }
+
+  let safePriceDisplay = productData.price_display;
+  let safePurchaseMode = productData.purchase_mode;
+  if (safePrice !== null && safePrice > 0) {
+    if (!safePriceDisplay || safePriceDisplay.toLowerCase().includes("contact") || safePriceDisplay.trim() === "") {
+      safePriceDisplay = `₹${safePrice.toLocaleString("en-IN")}`;
+    }
+    if (!safePurchaseMode || safePurchaseMode === "contact_for_price") {
+      safePurchaseMode = "buy_online";
+    }
+  }
+
   // Separate weight_kg from core product payload to avoid schema errors if column is not yet present
-  const { weight_kg, ...coreProductData } = productData as any;
+  const { weight_kg, price_value, price_display, purchase_mode, ...coreProductData } = productData as any;
   const productPayload: any = {
     ...coreProductData,
     id,
+    price_value: safePrice,
+    price_display: safePriceDisplay,
+    purchase_mode: safePurchaseMode,
     updated_at: new Date().toISOString()
   };
 
@@ -357,6 +380,36 @@ export async function updateProductWeight(id: string, weightKg: number) {
   revalidatePath('/');
 
   return { success: true, weight_kg: safeWeight };
+}
+
+export async function updateProductPrice(id: string, priceValue: number | string) {
+  const supabase = createAdminClient();
+  const cleanPrice = typeof priceValue === 'number' 
+    ? priceValue 
+    : parseFloat(String(priceValue).replace(/[^0-9.]/g, ''));
+
+  const safePrice = !isNaN(cleanPrice) && cleanPrice > 0 ? Math.round(cleanPrice) : null;
+  const priceDisplay = safePrice ? `₹${safePrice.toLocaleString('en-IN')}` : "Contact for Price";
+  const purchaseMode: "buy_online" | "contact_for_price" = safePrice ? "buy_online" : "contact_for_price";
+
+  const { error } = await supabase.from('products').update({
+    price_value: safePrice,
+    price_display: priceDisplay,
+    purchase_mode: purchaseMode,
+    updated_at: new Date().toISOString()
+  }).eq('id', id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/admin/products', 'layout');
+  revalidatePath('/shop');
+  revalidatePath(`/product-details/${id}`);
+  revalidatePath('/checkout');
+  revalidatePath('/');
+
+  return { success: true, price_value: safePrice, price_display: priceDisplay, purchase_mode: purchaseMode };
 }
 
 export async function deleteProduct(id: string) {

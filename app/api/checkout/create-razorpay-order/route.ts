@@ -19,50 +19,46 @@ export async function POST(req: Request) {
 
     // 1. Fetch products from database to ensure genuine, tamper-proof prices and weights
     const productIds = cart.map((item: any) => item.product.id);
-    let dbProducts: any[] | null = null;
-    let prodErr: any = null;
-
-    const initialFetch = await supabase
+    const { data: rawDbProducts, error: prodErr } = await supabase
       .from('products')
-      .select('id, name, model, sku, price_value, weight_kg')
+      .select(`
+        id, name, model, sku, price_value, price_display, purchase_mode,
+        specs:product_specs(spec_name, spec_value)
+      `)
       .in('id', productIds);
 
-    dbProducts = initialFetch.data;
-    prodErr = initialFetch.error;
-
-    // Fallback if weight_kg column hasn't been added to Supabase yet
-    if (prodErr && (prodErr.message?.includes('weight_kg') || prodErr.code === '42703' || prodErr.code === 'PGRST204')) {
-      const retry = await supabase
-        .from('products')
-        .select(`
-          id, name, model, sku, price_value,
-          specs:product_specs(spec_name, spec_value)
-        `)
-        .in('id', productIds);
-      dbProducts = retry.data;
-      prodErr = retry.error;
-    }
-
-    if (prodErr || !dbProducts) {
+    if (prodErr || !rawDbProducts) {
+      console.error('Database fetch error in create-razorpay-order:', prodErr);
       throw new Error('Unable to verify product pricing from catalog.');
     }
 
-    const priceMap = new Map<string, any>(dbProducts.map(p => [p.id, p]));
+    const priceMap = new Map<string, any>(rawDbProducts.map(p => [p.id, p]));
 
     let calculatedSubtotal = 0;
     let totalOrderWeightKg = 0;
     const validatedItems = cart.map((item: any) => {
       const dbProd = priceMap.get(item.product.id);
-      const unitPrice = dbProd?.price_value || item.product.price_value || 0;
+      const unitPrice = dbProd?.price_value !== undefined && dbProd?.price_value !== null
+        ? Number(dbProd.price_value)
+        : (Number(item.product.price_value) || 0);
+
+      if (unitPrice <= 0) {
+        throw new Error(`Product "${dbProd?.name || item.product.name}" requires a custom quotation or does not have an online price.`);
+      }
+
       const itemTotal = unitPrice * item.quantity;
       calculatedSubtotal += itemTotal;
 
-      let itemWeight = Number(dbProd?.weight_kg);
-      if (!itemWeight || isNaN(itemWeight)) {
-        const wSpec = dbProd?.specs?.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
-        itemWeight = wSpec ? parseFloat(wSpec.spec_value) : 1.0;
+      let itemWeight = 1.0;
+      if (dbProd?.specs && Array.isArray(dbProd.specs)) {
+        const wSpec = dbProd.specs.find((s: any) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight');
+        if (wSpec && wSpec.spec_value) {
+          const parsed = parseFloat(wSpec.spec_value);
+          if (!isNaN(parsed) && parsed > 0) itemWeight = parsed;
+        }
+      } else if (item.product.weight_kg && Number(item.product.weight_kg) > 0) {
+        itemWeight = Number(item.product.weight_kg);
       }
-      if (!itemWeight || isNaN(itemWeight)) itemWeight = 1.0;
 
       totalOrderWeightKg += itemWeight * item.quantity;
 

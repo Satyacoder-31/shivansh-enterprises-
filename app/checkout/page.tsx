@@ -9,7 +9,12 @@ import type { ShiprocketCourierOption } from "@/lib/shiprocket";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, subtotal, clearCart } = useCart();
+  const { cart, subtotal, clearCart, updateQuantity, removeFromCart, syncCart } = useCart();
+
+  // Sync cart with live database prices and weights on mount
+  useEffect(() => {
+    syncCart();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -38,6 +43,7 @@ export default function CheckoutPage() {
   const tax = Math.round(subtotal * 0.18);
   const shippingFee = selectedCourier ? selectedCourier.total_charge : 0;
   const finalTotal = subtotal + tax + shippingFee;
+  const hasUnpricedItems = cart.some((i) => !i.product.price_value || Number(i.product.price_value) <= 0);
 
   // Total package weight calculated from individual product weight_kg (defaulting to 1.0kg if unset)
   const totalWeightKg = Math.max(
@@ -133,6 +139,11 @@ export default function CheckoutPage() {
   const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    if (hasUnpricedItems) {
+      setPaymentError("Your cart contains item(s) available via custom quotation. Please contact us on WhatsApp (+91 7533838538) to confirm pricing before checkout.");
+      return;
+    }
 
     if (!formData.name || !formData.phone || !formData.address || !formData.pincode) {
       setPaymentError("Please complete all required shipping address fields.");
@@ -523,25 +534,65 @@ export default function CheckoutPage() {
                 </h3>
 
                 {/* Items Mini List */}
-                <div className="space-y-3 mb-6 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-3 mb-6 max-h-72 overflow-y-auto pr-1 divide-y divide-gold/10">
                   {cart.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex gap-3 text-xs items-center justify-between">
+                    <div key={product.id} className="pt-3 first:pt-0 flex gap-3 text-xs items-center justify-between">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <img
                           src={product.main_image}
                           alt={product.name}
-                          className="w-10 h-10 object-cover rounded border border-gold/20 shrink-0"
+                          className="w-11 h-11 object-cover rounded border border-gold/20 shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="font-medium text-white truncate max-w-[170px]">{product.name}</p>
-                          <p className="text-[10px] text-muted">
-                            Qty: {quantity} • {Number(product.weight_kg) > 0 ? product.weight_kg : 1.0} kg each
+                          <p className="font-medium text-white truncate max-w-[170px]" title={product.name}>
+                            {product.name}
                           </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="inline-flex items-center border border-gold/30 rounded bg-carbon-900/80">
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(product.id, quantity - 1)}
+                                className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold"
+                                title="Decrease quantity"
+                              >
+                                -
+                              </button>
+                              <span className="px-2 font-mono font-medium text-white">{quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(product.id, quantity + 1)}
+                                className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold"
+                                title="Increase quantity"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-muted">
+                              • {Number(product.weight_kg) > 0 ? product.weight_kg : 1.0} kg
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFromCart(product.id)}
+                              className="text-[11px] text-red-400 hover:text-red-300 ml-1"
+                              title="Remove item"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <span className="font-mono text-secondary shrink-0">
-                        {formatPrice((product.price_value || 0) * quantity)}
-                      </span>
+                      <div className="text-right shrink-0">
+                        <span className="font-mono text-white font-medium block">
+                          {product.price_value 
+                            ? formatPrice(Number(product.price_value) * quantity)
+                            : product.price_display || "Contact for Price"}
+                        </span>
+                        {quantity > 1 && product.price_value && (
+                          <span className="text-[10px] text-muted font-mono block">
+                            ({formatPrice(Number(product.price_value))} ea)
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -576,12 +627,24 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* Unpriced Warning */}
+                {hasUnpricedItems && (
+                  <div className="mt-4 p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-lg text-xs text-amber-300 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5">
+                      ⚠️ Quotation Item in Cart
+                    </p>
+                    <p className="text-[11px] text-secondary leading-relaxed">
+                      One or more products require an authentic distributor quotation. Please remove them or connect with our engineering team on WhatsApp (<a href="https://wa.me/917533838538" target="_blank" className="text-gold underline font-bold">+91 7533838538</a>) to confirm pricing.
+                    </p>
+                  </div>
+                )}
+
                 {/* Razorpay Action Button */}
-                <div className="mt-8 space-y-3">
+                <div className="mt-6 space-y-3">
                   <button
                     type="submit"
-                    disabled={isProcessing}
-                    className="btn btn-gold w-full text-center font-bold py-3.5 flex items-center justify-center gap-2 shadow-lg"
+                    disabled={isProcessing || hasUnpricedItems}
+                    className="btn btn-gold w-full text-center font-bold py-3.5 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
                       <>
