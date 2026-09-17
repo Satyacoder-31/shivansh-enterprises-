@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, message: err.message || 'Failed to check courier serviceability' },
+      { success: false, message: err.message || 'Failed to check Shiprocket courier serviceability' },
       { status: 500 }
     );
   }

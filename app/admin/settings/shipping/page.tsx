@@ -1,10 +1,14 @@
 import React from "react";
 import ShippingSettingsClient from "./ShippingSettingsClient";
+import { getShippingSettings } from "@/lib/actions/admin";
 
 export const metadata = {
-  title: "Logistics & NimbusPost Settings | Sivansh Admin",
+  title: "Logistics & Shiprocket Settings | Sivansh Admin",
 };
 
-export default function ShippingSettingsPage() {
-  return <ShippingSettingsClient />;
+export const revalidate = 0;
+
+export default async function ShippingSettingsPage() {
+  const initialSettings = await getShippingSettings();
+  return <ShippingSettingsClient initialSettings={initialSettings} />;
 }

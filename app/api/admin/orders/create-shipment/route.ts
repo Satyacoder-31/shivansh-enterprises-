@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createNimbusShipment } from '@/lib/nimbuspost';
+import { createShiprocketShipment } from '@/lib/shiprocket';
 
 export async function POST(req: Request) {
   try {
@@ -26,19 +26,19 @@ export async function POST(req: Request) {
 
     // 2. Parse courier from notes or default to Delhivery
     let courierName = 'Delhivery Surface';
-    let courierId = 101;
+    let courierId = 10;
     if (order.notes) {
       if (order.notes.includes('Blue Dart')) {
         courierName = 'Blue Dart Express Air';
-        courierId = 102;
+        courierId = 1;
       } else if (order.notes.includes('DTDC')) {
-        courierName = 'DTDC Premium';
-        courierId = 103;
+        courierName = 'DTDC Premium Priority';
+        courierId = 24;
       }
     }
 
-    // 3. Call NimbusPost Shipment creation
-    const shipment = await createNimbusShipment({
+    // 3. Call Shiprocket Shipment creation
+    const shipment = await createShiprocketShipment({
       order_number: order.order_number,
       customer_name: order.customer_name,
       customer_phone: order.customer_phone,
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     });
 
     if (!shipment.success) {
-      throw new Error(shipment.message || 'NimbusPost shipment booking failed.');
+      throw new Error(shipment.message || 'Shiprocket shipment booking failed.');
     }
 
     // 4. Update order with AWB & Shipped status

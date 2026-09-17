@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
 import { formatPrice } from "@/lib/utils";
-import type { NimbusCourierOption } from "@/lib/nimbuspost";
+import type { ShiprocketCourierOption } from "@/lib/shiprocket";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -23,9 +23,9 @@ export default function CheckoutPage() {
     notes: "",
   });
 
-  // NimbusPost Courier State
-  const [couriers, setCouriers] = useState<NimbusCourierOption[]>([]);
-  const [selectedCourier, setSelectedCourier] = useState<NimbusCourierOption | null>(null);
+  // Shiprocket Courier State
+  const [couriers, setCouriers] = useState<ShiprocketCourierOption[]>([]);
+  const [selectedCourier, setSelectedCourier] = useState<ShiprocketCourierOption | null>(null);
   const [loadingCouriers, setLoadingCouriers] = useState(false);
   const [courierError, setCourierError] = useState("");
 
@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   // Total weight estimate (defaulting to 1kg per item)
   const totalWeightKg = cart.reduce((acc, item) => acc + (1.0 * item.quantity), 0);
 
-  // Auto-fetch NimbusPost couriers when pincode reaches 6 digits
+  // Auto-fetch Shiprocket couriers when pincode reaches 6 digits
   useEffect(() => {
     const cleanPin = formData.pincode.replace(/\D/g, "");
     if (cleanPin.length === 6) {
@@ -58,7 +58,7 @@ export default function CheckoutPage() {
     setLoadingCouriers(true);
     setCourierError("");
     try {
-      const res = await fetch("/api/shipping/nimbuspost/serviceability", {
+      const res = await fetch("/api/shipping/shiprocket/serviceability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
       // Auto-select the first (or best value) courier partner
       setSelectedCourier(data.couriers[0]);
     } catch (err: any) {
-      setCourierError(err.message || "Failed to query NimbusPost delivery options.");
+      setCourierError(err.message || "Failed to query Shiprocket delivery options.");
       setCouriers([]);
       setSelectedCourier(null);
     } finally {
@@ -409,7 +409,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Step 2: NimbusPost Multi-Carrier Delivery Selection */}
+              {/* Step 2: Shiprocket Multi-Carrier Delivery Selection */}
               <div className="p-6 md:p-8 bg-surface rounded-xl border border-gold/20 shadow-md space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
@@ -419,7 +419,7 @@ export default function CheckoutPage() {
                     <h2 className="serif-heading text-xl">Select Delivery Partner</h2>
                   </div>
                   <span className="text-[10px] uppercase tracking-wider text-muted font-mono">
-                    NimbusPost Logistics
+                    Shiprocket Logistics
                   </span>
                 </div>
 
@@ -431,7 +431,7 @@ export default function CheckoutPage() {
                   <div className="p-6 text-center border border-gold/20 rounded-lg bg-carbon-900/40">
                     <div className="inline-block animate-spin text-gold text-2xl mb-2">⟳</div>
                     <p className="text-xs text-secondary">
-                      Connecting to NimbusPost network... Calculating live carrier rates for pincode {formData.pincode}...
+                      Connecting to Shiprocket network... Calculating live carrier rates for pincode {formData.pincode}...
                     </p>
                   </div>
                 )}
@@ -542,7 +542,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="flex justify-between items-center text-secondary">
-                    <span>Delivery via NimbusPost:</span>
+                    <span>Delivery via Shiprocket:</span>
                     <span className="font-mono font-medium text-gold">
                       {selectedCourier ? formatPrice(selectedCourier.total_charge) : "Select Courier"}
                     </span>
@@ -609,7 +609,7 @@ export default function CheckoutPage() {
 
               <div className="p-4 bg-gold/10 border border-gold/20 rounded-lg text-xs leading-relaxed text-secondary">
                 <strong className="text-gold block mb-1">Sandbox Testing Environment</strong>
-                Test mode is currently selected in store administration. This sandbox simulator allows you to experience the complete payment success, automated database record, and NimbusPost courier booking flow without charging real cards or UPI. Switch to &quot;Live Production&quot; in Admin Settings for real transactions.
+                Test mode is currently selected in store administration. This sandbox simulator allows you to experience the complete payment success, automated database record, and Shiprocket courier booking flow without charging real cards or UPI. Switch to &quot;Live Production&quot; in Admin Settings for real transactions.
               </div>
 
               <div className="bg-carbon-900 p-4 rounded border border-gold/15 space-y-2 text-xs">

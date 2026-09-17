@@ -140,7 +140,7 @@ export async function GET(req: NextRequest) {
     </div>
 
     <div class="footer-row">
-      <span>Routing: NimbusPost Multi-Carrier Hub</span>
+      <span>Routing: Shiprocket Multi-Carrier Hub</span>
       <span>Authentic Hardware • BIS Certified</span>
     </div>
   </div>

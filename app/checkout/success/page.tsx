@@ -88,7 +88,7 @@ function SuccessContent() {
           <div className="flex justify-between items-start pb-3 border-b border-gold/10">
             <span className="text-muted">Logistics Dispatch:</span>
             <div className="text-right">
-              <span className="font-bold text-white block">NimbusPost Multi-Carrier Hub</span>
+              <span className="font-bold text-white block">Shiprocket Multi-Carrier Hub</span>
               <span className="text-xs text-secondary">
                 {order?.notes?.includes("Blue Dart") 
                   ? "Blue Dart Express Air" 
@@ -136,7 +136,7 @@ function SuccessContent() {
         {/* Next Steps Notification */}
         <div className="p-4 bg-gold/5 border border-gold/20 rounded-lg text-xs leading-relaxed text-secondary mb-8">
           <strong className="text-gold block mb-1">What Happens Next?</strong>
-          Our technical fulfillment team in Keshod will perform final sensor/lens calibration and quality checks. You will receive an SMS and WhatsApp notification with your live <strong>NimbusPost AWB tracking link</strong> the moment the parcel is dispatched.
+          Our technical fulfillment team in Keshod will perform final sensor/lens calibration and quality checks. You will receive an SMS and WhatsApp notification with your live <strong>Shiprocket AWB tracking link</strong> the moment the parcel is dispatched.
         </div>
 
         {/* Action Buttons */}

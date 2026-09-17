@@ -13,6 +13,7 @@ import type {
   Testimonial,
   Category,
   PaymentSettings,
+  ShippingSettings,
   Profile,
   MediaItem,
   Customer,
@@ -630,6 +631,38 @@ export async function updatePaymentSettings(settings: Partial<PaymentSettings>) 
 
   if (error) throw new Error(error.message);
   revalidatePath('/admin/settings/payments');
+  return data;
+}
+
+export async function getShippingSettings(): Promise<ShippingSettings | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('shipping_settings')
+    .select('*')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('Error fetching shipping_settings:', error.message);
+    return null;
+  }
+  return data;
+}
+
+export async function updateShippingSettings(settings: Partial<ShippingSettings>) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('shipping_settings')
+    .upsert({
+      id: 1,
+      ...settings,
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/settings/shipping');
   return data;
 }
 

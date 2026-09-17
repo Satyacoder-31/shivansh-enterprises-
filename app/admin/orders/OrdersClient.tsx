@@ -27,7 +27,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDispatching, setIsDispatching] = useState(false);
 
-  const handleNimbusDispatch = async (orderId: string) => {
+  const handleShiprocketDispatch = async (orderId: string) => {
     setIsDispatching(true);
     try {
       const res = await fetch("/api/admin/orders/create-shipment", {
@@ -37,16 +37,16 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to book shipment on NimbusPost.");
+        throw new Error(data.message || "Failed to book shipment on Shiprocket.");
       }
-      alert(`Consignment Approved! NimbusPost AWB Generated: ${data.shipment.awb_number}`);
+      alert(`Consignment Approved! Shiprocket AWB Generated: ${data.shipment.awb_number}`);
       setOrders(orders.map(o => o.id === orderId ? { ...o, order_status: "shipped" as any, notes: data.order.notes } : o));
       if (selectedOrder?.id === orderId) {
         setSelectedOrder({ ...selectedOrder, order_status: "shipped" as any, notes: data.order.notes });
       }
       router.refresh();
     } catch (err: any) {
-      alert("NimbusPost Dispatch Error: " + err.message);
+      alert("Shiprocket Dispatch Error: " + err.message);
     } finally {
       setIsDispatching(false);
     }
@@ -357,13 +357,13 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
               </div>
             </div>
 
-            {/* NimbusPost Logistics Fulfillment Block */}
+            {/* Shiprocket Logistics Fulfillment Block */}
             <div className="bg-[#181818] p-4 rounded-lg border border-[#c5a059]/30 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Truck className="w-4 h-4 text-[#c5a059]" />
                   <span className="text-xs font-bold uppercase tracking-wider text-white">
-                    NimbusPost Logistics Fulfillment
+                    Shiprocket Logistics Fulfillment
                   </span>
                 </div>
                 <span className="text-[10px] font-mono text-[#c5a059] bg-[#c5a059]/10 px-2 py-0.5 rounded border border-[#c5a059]/20">
@@ -383,7 +383,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
                   <div className="flex gap-2">
                     <a
                       href={`/api/admin/orders/label-preview?order=${selectedOrder.order_number}&awb=${
-                        selectedOrder.notes?.match(/AWB:\s*([^\s|)]+)/)?.[1] || "DEL-9812457812"
+                        selectedOrder.notes?.match(/AWB:\s*([^\s|)]+)/)?.[1] || "SR-DEL-9812457812"
                       }`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -401,11 +401,11 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
                   <button
                     type="button"
                     disabled={isDispatching}
-                    onClick={() => handleNimbusDispatch(selectedOrder.id)}
+                    onClick={() => handleShiprocketDispatch(selectedOrder.id)}
                     className="px-4 py-2 bg-gradient-to-r from-[#c5a059] to-[#b38e47] hover:from-[#d4af66] hover:to-[#c5a059] text-black font-bold rounded text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
                   >
                     <Truck className="w-3.5 h-3.5" />
-                    <span>{isDispatching ? "Booking NimbusPost..." : "Approve & Ship with NimbusPost"}</span>
+                    <span>{isDispatching ? "Booking Shiprocket..." : "Approve & Ship with Shiprocket"}</span>
                   </button>
                 </div>
               )}

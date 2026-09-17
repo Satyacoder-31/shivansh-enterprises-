@@ -296,4 +296,19 @@ export interface PaymentSettings {
   updated_at: string;
 }
 
+export interface ShippingSettings {
+  id: number;
+  provider: string;
+  shiprocket_email: string;
+  shiprocket_password: string;
+  shiprocket_token: string;
+  pickup_location: string;
+  origin_pincode: string;
+  warehouse_name: string;
+  default_weight: string;
+  is_test_mode: boolean;
+  is_enabled: boolean;
+  updated_at: string;
+}
+
 

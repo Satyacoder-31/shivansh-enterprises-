@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         payment_status: 'pending',
         notes: [
           notes || '',
-          `Delivery Partner: ${courier?.courier_name || 'NimbusPost Partner'} (Est: ${courier?.estimated_delivery_days || 'Standard'})`,
+          `Delivery Partner: ${courier?.courier_name || 'Shiprocket Partner'} (Est: ${courier?.estimated_delivery_days || 'Standard'})`,
           `Freight: ₹${shippingFee}`
         ].filter(Boolean).join(' | '),
       }])
