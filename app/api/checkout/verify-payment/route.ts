@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       .from('orders')
       .update({
         payment_status: 'paid',
+        payment_id: razorpay_payment_id,
         order_status: 'processing', // Paid & ready for admin packaging/approval
         updated_at: new Date().toISOString(),
       })

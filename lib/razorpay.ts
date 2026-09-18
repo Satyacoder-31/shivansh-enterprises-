@@ -40,7 +40,7 @@ export async function getRazorpayCredentials(): Promise<RazorpayGatewayConfig> {
       .single();
 
     if (!error && dbSettings) {
-      const isTest = Boolean(dbSettings.is_test_mode);
+      const isTest = Boolean(dbSettings.is_test_mode) || keyId.startsWith('rzp_test_');
       let keyId = (dbSettings.razorpay_key_id || '').trim();
       let keySecret = (dbSettings.razorpay_key_secret || '').trim();
 
