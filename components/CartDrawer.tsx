@@ -65,9 +65,16 @@ export default function CartDrawer() {
                     <div className="cart-item-info">
                       <h4 className="cart-item-name">{product.name}</h4>
                       <p className="cart-item-model">{product.model || product.brand}</p>
-                      <p className="cart-item-price">
-                        {product.price_value ? formatPrice(product.price_value) : product.price_display || "Contact for Price"}
-                      </p>
+                      <div className="cart-item-price flex items-baseline gap-1.5">
+                        {product.mrp && product.price_value && Number(product.mrp) > Number(product.price_value) && (
+                          <span className="line-through text-xs text-neutral-400 font-mono font-normal">
+                            {formatPrice(product.mrp)}
+                          </span>
+                        )}
+                        <span>
+                          {product.price_value ? formatPrice(product.price_value) : product.price_display || "Contact for Price"}
+                        </span>
+                      </div>
 
                       {/* Stock Alert in Cart Item */}
                       {!stockInfo.isAvailable ? (

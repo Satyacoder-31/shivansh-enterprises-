@@ -29,6 +29,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
     purchase_mode: initialProduct?.purchase_mode || "contact_for_price",
     price_display: initialProduct?.price_display || "Contact for Price",
     price_value: initialProduct?.price_value || "",
+    mrp: initialProduct?.mrp !== undefined && initialProduct?.mrp !== null ? String(initialProduct.mrp) : "",
     weight_kg: (initialProduct?.specs?.find((s) => s.spec_name === '__weight_kg' || s.spec_name?.toLowerCase() === 'shipping weight')?.spec_value)
       || (initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null && Number(initialProduct?.weight_kg) > 0 ? String(initialProduct.weight_kg) : "1.0"),
     rating: initialProduct?.rating || 5.0,
@@ -126,6 +127,14 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         }
       }
 
+      let safeMrpVal: number | null = null;
+      if (formData.mrp !== undefined && formData.mrp !== null && String(formData.mrp).trim() !== "") {
+        const parsedMrp = parseFloat(String(formData.mrp).replace(/[^0-9.]/g, ''));
+        if (!isNaN(parsedMrp) && parsedMrp > 0) {
+          safeMrpVal = Math.round(parsedMrp);
+        }
+      }
+
       const safePurchaseMode = safePriceVal !== null && safePriceVal > 0 
         ? "buy_online" 
         : (formData.purchase_mode as any);
@@ -145,6 +154,8 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         purchase_mode: safePurchaseMode,
         price_display: safePriceDisplay,
         price_value: safePriceVal,
+        sale_price: safePriceVal,
+        mrp: safeMrpVal,
         weight_kg: formData.weight_kg ? Number(formData.weight_kg) : 1.0,
         rating: Number(formData.rating),
         stock_quantity: Math.max(0, parseInt(String(formData.stock_quantity || 0), 10) || 0),
@@ -324,9 +335,120 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
       </div>
 
       {/* 2. Pricing & Purchase Mode */}
-      <div className="p-6 bg-carbon-800 border border-gold/15 rounded-xl space-y-4">
-        <h2 className="font-serif text-lg font-bold text-gold">2. Pricing & Purchase Mode</h2>
+      <div className="p-6 bg-carbon-800 border border-gold/15 rounded-xl space-y-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-lg font-bold text-gold">2. Pricing, MRP & Purchase Mode</h2>
+          <span className="text-[11px] text-muted font-mono">Both Selling Price & MRP editable</span>
+        </div>
 
+        {/* Core Pricing Grid: Selling Price & MRP */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-carbon-900/90 border border-gold/20 rounded-lg">
+          <div>
+            <label className="form-label text-xs block mb-1 text-white font-semibold">
+              Selling Price (₹ Customer Pays) *
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold font-bold text-sm">₹</span>
+              <input
+                type="text"
+                placeholder="e.g. 1650"
+                className="form-input pl-8 text-sm font-mono font-bold text-white focus:border-gold"
+                value={formData.price_value}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const clean = val.replace(/[^0-9.]/g, "");
+                  const num = parseFloat(clean);
+                  setFormData({
+                    ...formData,
+                    price_value: val,
+                    price_display: !isNaN(num) && num > 0 ? `₹${Math.round(num).toLocaleString('en-IN')}` : formData.price_display,
+                    purchase_mode: !isNaN(num) && num > 0 ? "buy_online" : formData.purchase_mode
+                  });
+                }}
+              />
+            </div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              Active direct checkout price. Customer pays this amount online.
+            </span>
+          </div>
+
+          <div>
+            <label className="form-label text-xs block mb-1 text-white font-semibold">
+              Maximum Retail Price — MRP (₹ Original Printed Price)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">₹</span>
+              <input
+                type="text"
+                placeholder="e.g. 2499"
+                className="form-input pl-8 text-sm font-mono text-neutral-200 focus:border-gold"
+                value={formData.mrp}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({
+                    ...formData,
+                    mrp: val
+                  });
+                }}
+              />
+            </div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              When MRP is higher than Selling Price, MRP is displayed with a strikethrough text.
+            </span>
+          </div>
+
+          {/* Dynamic Live Discount & Strikethrough Preview */}
+          {(() => {
+            const cleanPrice = parseFloat(String(formData.price_value || "").replace(/[^0-9.]/g, ""));
+            const cleanMrp = parseFloat(String(formData.mrp || "").replace(/[^0-9.]/g, ""));
+            const hasValidPrice = !isNaN(cleanPrice) && cleanPrice > 0;
+            const hasValidMrp = !isNaN(cleanMrp) && cleanMrp > 0;
+
+            if (hasValidPrice && hasValidMrp) {
+              if (cleanMrp > cleanPrice) {
+                const discount = Math.round(((cleanMrp - cleanPrice) / cleanMrp) * 100);
+                const savings = Math.round(cleanMrp - cleanPrice);
+                return (
+                  <div className="sm:col-span-2 p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs uppercase tracking-wider text-muted">Storefront Display:</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="line-through text-xs text-neutral-400 font-mono">
+                          ₹{Math.round(cleanMrp).toLocaleString("en-IN")}
+                        </span>
+                        <span className="text-base font-bold text-gold font-mono">
+                          ₹{Math.round(cleanPrice).toLocaleString("en-IN")}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                          {discount}% OFF
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-emerald-400 font-medium">
+                      ✓ Strikethrough active (Customer saves ₹{savings.toLocaleString("en-IN")})
+                    </span>
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="sm:col-span-2 p-3 bg-amber-950/30 border border-amber-500/30 rounded-lg text-xs text-amber-300">
+                    ℹ️ MRP (₹{cleanMrp.toLocaleString("en-IN")}) is less than or equal to Selling Price (₹{cleanPrice.toLocaleString("en-IN")}). Strikethrough is only displayed when MRP &gt; Selling Price.
+                  </div>
+                );
+              }
+            } else if (hasValidPrice) {
+              return (
+                <div className="sm:col-span-2 p-2.5 bg-carbon-950/40 border border-neutral-700/50 rounded-lg text-xs text-neutral-400 flex items-center justify-between">
+                  <span>Display price: <strong className="text-white">₹{Math.round(cleanPrice).toLocaleString("en-IN")}</strong></span>
+                  <span className="text-[11px] text-muted">Add an MRP above to show strikethrough price and savings badge.</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
+        </div>
+
+        {/* Secondary Details: Purchase Mode, Display Label, Weight */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="form-label text-xs">Purchase Mode *</label>
@@ -341,10 +463,10 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           </div>
 
           <div>
-            <label className="form-label text-xs">Display Label</label>
+            <label className="form-label text-xs">Display Label Override</label>
             <input
               type="text"
-              placeholder="e.g. Contact for Price"
+              placeholder="e.g. ₹1,650 or Contact for Price"
               className="form-input text-sm"
               value={formData.price_display}
               onChange={(e) => setFormData({ ...formData, price_display: e.target.value })}
@@ -352,33 +474,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           </div>
 
           <div>
-            <label className="form-label text-xs">Price Value in INR (Numeric)</label>
-            <input
-              type="text"
-              placeholder="e.g. 14999"
-              className="form-input text-sm font-mono"
-              value={formData.price_value}
-              onChange={(e) => {
-                const val = e.target.value;
-                const clean = val.replace(/[^0-9.]/g, "");
-                const num = parseFloat(clean);
-                setFormData({
-                  ...formData,
-                  price_value: val,
-                  price_display: !isNaN(num) && num > 0 ? `₹${Math.round(num).toLocaleString('en-IN')}` : formData.price_display,
-                  purchase_mode: !isNaN(num) && num > 0 ? "buy_online" : formData.purchase_mode
-                });
-              }}
-            />
-            <span className="text-[10px] text-neutral-400 mt-1 block">
-              Direct checkout selling price in INR (e.g. 1650 or 5899).
-            </span>
-          </div>
-
-          <div>
             <label className="form-label text-xs flex items-center justify-between">
               <span>Package Weight (kg)</span>
-              <span className="text-[10px] text-gold font-normal">Shiprocket Courier Calculation</span>
+              <span className="text-[10px] text-gold font-normal">Courier Rate</span>
             </label>
             <input
               type="number"
@@ -390,7 +488,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
               onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
             />
             <span className="text-[10px] text-neutral-400 mt-1 block">
-              Actual packaged dead/volumetric weight. Used for live per-kg courier freight rates.
+              Dead/volumetric weight used for live Shiprocket freight quotes.
             </span>
           </div>
         </div>

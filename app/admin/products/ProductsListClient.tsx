@@ -25,6 +25,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
   // Quick price inline edit state
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [tempPrice, setTempPrice] = useState<string>("");
+  const [tempMrp, setTempMrp] = useState<string>("");
   const [savingPriceId, setSavingPriceId] = useState<string | null>(null);
 
   // Quick stock quantity inline edit state
@@ -59,21 +60,36 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
   const startEditPrice = (product: Product) => {
     setEditingPriceId(product.id);
     setTempPrice(product.price_value ? String(product.price_value) : "");
+    setTempMrp(product.mrp ? String(product.mrp) : "");
   };
 
   const handleSavePrice = async (productId: string) => {
-    const clean = tempPrice.replace(/[^0-9.]/g, "");
-    const val = parseFloat(clean);
-    if (tempPrice.trim() !== "" && (isNaN(val) || val < 0)) {
-      alert("Please enter a valid numeric price (e.g. 1650 or 5899), or leave blank for 'Contact for Price'");
+    const cleanPrice = tempPrice.replace(/[^0-9.]/g, "");
+    const priceNum = parseFloat(cleanPrice);
+    if (tempPrice.trim() !== "" && (isNaN(priceNum) || priceNum < 0)) {
+      alert("Please enter a valid numeric selling price (e.g. 1650 or 5899), or leave blank for 'Contact for Price'");
       return;
     }
+
+    const cleanMrp = tempMrp.replace(/[^0-9.]/g, "");
+    const mrpNum = parseFloat(cleanMrp);
+    if (tempMrp.trim() !== "" && (isNaN(mrpNum) || mrpNum < 0)) {
+      alert("Please enter a valid numeric MRP (e.g. 2499), or leave blank");
+      return;
+    }
+
     setSavingPriceId(productId);
     try {
-      const res = await updateProductPrice(productId, tempPrice.trim() === "" ? 0 : val);
+      const res = await updateProductPrice(
+        productId, 
+        tempPrice.trim() === "" ? 0 : priceNum,
+        tempMrp.trim() === "" ? null : mrpNum
+      );
       setProducts(products.map(p => p.id === productId ? {
         ...p,
         price_value: res.price_value,
+        sale_price: res.sale_price,
+        mrp: res.mrp,
         price_display: res.price_display,
         purchase_mode: res.purchase_mode as "buy_online" | "contact_for_price"
       } : p));
@@ -418,49 +434,83 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
 
                     <td className="py-3 px-4">
                       {editingPriceId === product.id ? (
-                        <div className="flex items-center gap-1.5">
-                          <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted text-xs">₹</span>
-                            <input
-                              type="text"
-                              placeholder="0"
-                              value={tempPrice}
-                              onChange={(e) => setTempPrice(e.target.value)}
-                              className="w-24 bg-carbon-900 border border-gold/40 rounded pl-5 pr-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-gold"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") handleSavePrice(product.id);
-                                if (e.key === "Escape") setEditingPriceId(null);
-                              }}
-                            />
+                        <div className="flex flex-col gap-1.5 p-2 rounded bg-carbon-900/95 border border-gold/40 shadow-xl min-w-[190px]">
+                          <div>
+                            <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">Selling Price (₹)</span>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gold text-xs font-bold">₹</span>
+                              <input
+                                type="text"
+                                placeholder="e.g. 1650"
+                                value={tempPrice}
+                                onChange={(e) => setTempPrice(e.target.value)}
+                                className="w-full bg-carbon-950 border border-gold/40 rounded pl-5 pr-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-gold"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") handleSavePrice(product.id);
+                                  if (e.key === "Escape") setEditingPriceId(null);
+                                }}
+                              />
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            disabled={savingPriceId === product.id}
-                            onClick={() => handleSavePrice(product.id)}
-                            className="p-1 rounded bg-gold text-black hover:bg-gold-light transition-colors"
-                            title="Save price"
-                          >
-                            <Check size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingPriceId(null)}
-                            className="p-1 rounded bg-carbon-900 text-muted hover:text-white"
-                            title="Cancel"
-                          >
-                            <X size={12} />
-                          </button>
+                          <div>
+                            <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">MRP (₹ Strikethrough)</span>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-bold">₹</span>
+                              <input
+                                type="text"
+                                placeholder="e.g. 2499"
+                                value={tempMrp}
+                                onChange={(e) => setTempMrp(e.target.value)}
+                                className="w-full bg-carbon-950 border border-gold/40 rounded pl-5 pr-2 py-1 text-xs text-neutral-200 font-mono focus:outline-none focus:border-gold"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") handleSavePrice(product.id);
+                                  if (e.key === "Escape") setEditingPriceId(null);
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-gold/15">
+                            <button
+                              type="button"
+                              onClick={() => setEditingPriceId(null)}
+                              className="px-2 py-0.5 rounded bg-carbon-800 text-muted hover:text-white text-[11px]"
+                              title="Cancel"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              disabled={savingPriceId === product.id}
+                              onClick={() => handleSavePrice(product.id)}
+                              className="px-2.5 py-0.5 rounded bg-gold text-black font-bold hover:bg-gold-light transition-colors text-[11px] flex items-center gap-1"
+                              title="Save both Selling Price and MRP"
+                            >
+                              <Check size={11} /> Save
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="group flex flex-col items-start">
+                          {/* Strikethrough MRP and Discount Badge */}
+                          {product.mrp && product.price_value && Number(product.mrp) > Number(product.price_value) && (
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="line-through text-[11px] text-neutral-400 font-mono" title={`MRP: ${formatPrice(product.mrp)}`}>
+                                {formatPrice(product.mrp)}
+                              </span>
+                              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/70 px-1 py-0.2 rounded border border-emerald-500/30">
+                                {Math.round(((Number(product.mrp) - Number(product.price_value)) / Number(product.mrp)) * 100)}% OFF
+                              </span>
+                            </div>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => startEditPrice(product)}
                             className="inline-flex items-center gap-1.5 font-mono text-white hover:text-gold transition-colors py-0.5"
-                            title="Click to quickly edit price"
+                            title="Click to quickly edit Selling Price & MRP"
                           >
-                            <span className="font-bold">
+                            <span className="font-bold text-gold">
                               {product.price_value ? formatPrice(product.price_value) : product.price_display}
                             </span>
                             <Edit3 size={11} className="opacity-0 group-hover:opacity-100 text-gold transition-opacity" />

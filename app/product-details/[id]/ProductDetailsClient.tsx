@@ -24,6 +24,18 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
     ? formatPrice(product.price_value)
     : product.price_display || "Contact for Price";
 
+  const hasDiscount = Boolean(
+    product.mrp &&
+    product.price_value &&
+    Number(product.mrp) > Number(product.price_value)
+  );
+  const discountPercent = hasDiscount
+    ? Math.round(((Number(product.mrp) - Number(product.price_value)) / Number(product.mrp)) * 100)
+    : 0;
+  const savingsAmount = hasDiscount
+    ? Math.round(Number(product.mrp) - Number(product.price_value))
+    : 0;
+
   const handleBuyNow = () => {
     if (!stockInfo.isAvailable) return;
     addToCart(product, quantity);
@@ -51,6 +63,11 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           {stockInfo.isLowStock && (
             <div className="absolute top-4 left-4 z-10 bg-amber-600/95 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded shadow-lg animate-pulse">
               Only {stockInfo.quantity} Left
+            </div>
+          )}
+          {stockInfo.isAvailable && hasDiscount && (
+            <div className="absolute top-4 right-4 z-10 bg-emerald-600 text-white text-xs font-bold tracking-wider px-3 py-1 rounded shadow-lg">
+              {discountPercent}% OFF
             </div>
           )}
           <img 
@@ -149,15 +166,42 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
         </p>
 
         {/* Pricing Block */}
-        <div className="product-price-box p-4 bg-surface rounded mb-6 border border-gold/20">
-          <div className="flex items-center justify-between">
+        <div className="product-price-box p-5 bg-surface rounded-xl mb-6 border border-gold/25 shadow-lg shadow-black/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs uppercase tracking-wider text-muted block mb-1">Pricing Mode</span>
-              <span className="text-2xl font-bold text-gold">{displayPrice}</span>
+              <span className="text-xs uppercase tracking-wider text-muted block mb-1.5">
+                {isBuyOnline ? "Authentic Equipment Pricing" : "Pricing Mode"}
+              </span>
+              <div className="flex items-baseline flex-wrap gap-3">
+                {hasDiscount && (
+                  <span 
+                    className="line-through text-lg text-neutral-400 font-mono" 
+                    title={`Original Maximum Retail Price (MRP): ${formatPrice(product.mrp!)}`}
+                  >
+                    <span className="text-xs font-sans text-neutral-500 mr-1">MRP:</span>
+                    {formatPrice(product.mrp!)}
+                  </span>
+                )}
+                <span className="text-3xl font-bold text-gold font-mono tracking-tight">
+                  {displayPrice}
+                </span>
+                {hasDiscount && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                    <span>⚡</span> {discountPercent}% OFF
+                  </span>
+                )}
+              </div>
+              {hasDiscount && (
+                <p className="text-xs text-emerald-400 font-medium mt-1.5 flex items-center gap-1.5">
+                  <span>✓</span> You save <strong className="font-mono">₹{savingsAmount.toLocaleString("en-IN")}</strong> ({discountPercent}%) directly from authorized distributor stock
+                </p>
+              )}
             </div>
-            <span className="text-xs text-secondary max-w-xs text-right">
-              {isBuyOnline ? "Ex-Keshod warehouse • GST & shipping estimated at checkout" : "Genuine brand quotation directly from authorized distributor"}
-            </span>
+            <div className="text-xs text-secondary sm:max-w-[210px] sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-gold/10">
+              {isBuyOnline 
+                ? "Ex-Keshod warehouse • Official manufacturer warranty • GST & shipping estimated at checkout" 
+                : "Genuine brand quotation directly from authorized distributor"}
+            </div>
           </div>
         </div>
 

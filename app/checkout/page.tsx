@@ -48,6 +48,12 @@ export default function CheckoutPage() {
   const outOfStockItems = cart.filter((i) => !getProductStockStatus(i.product).isAvailable);
   const hasOutOfStockItems = outOfStockItems.length > 0;
 
+  const totalMrp = cart.reduce((acc, { product, quantity }) => {
+    const itemMrp = product.mrp && Number(product.mrp) > 0 ? Number(product.mrp) : (product.price_value ? Number(product.price_value) : 0);
+    return acc + (itemMrp * quantity);
+  }, 0);
+  const totalMrpSavings = Math.max(0, totalMrp - subtotal);
+
   // Total package weight calculated from individual product weight_kg (defaulting to 1.0kg if unset)
   const totalWeightKg = Math.max(
     0.5,
@@ -598,6 +604,11 @@ export default function CheckoutPage() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
+                          {product.mrp && product.price_value && Number(product.mrp) > Number(product.price_value) && (
+                            <span className="line-through text-xs text-neutral-400 font-mono block" title="Original MRP">
+                              {formatPrice(Number(product.mrp) * quantity)}
+                            </span>
+                          )}
                           <span className="font-mono text-white font-medium block">
                             {product.price_value 
                               ? formatPrice(Number(product.price_value) * quantity)
@@ -620,6 +631,15 @@ export default function CheckoutPage() {
                     <span>Hardware Subtotal:</span>
                     <span className="font-mono">{formatPrice(subtotal)}</span>
                   </div>
+
+                  {totalMrpSavings > 0 && (
+                    <div className="flex justify-between text-emerald-400 text-xs font-semibold bg-emerald-950/50 px-2.5 py-1.5 rounded border border-emerald-500/30">
+                      <span className="flex items-center gap-1">
+                        <span>🏷️</span> Total Savings from MRP:
+                      </span>
+                      <span className="font-mono">- {formatPrice(totalMrpSavings)}</span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between text-secondary text-xs">
                     <span>Shipment Weight:</span>

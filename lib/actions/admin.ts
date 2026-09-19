@@ -274,12 +274,23 @@ export async function saveProduct(
   }
   const safeInStock = productData.in_stock !== false && safeStockQuantity > 0;
 
-  // Separate weight_kg from core product payload to avoid schema errors if column is not yet present
-  const { weight_kg, price_value, price_display, purchase_mode, stock_quantity, in_stock, ...coreProductData } = productData as any;
+  // Parse and sanitize mrp safely
+  let safeMrp: number | null = null;
+  if (productData.mrp !== undefined && productData.mrp !== null && String(productData.mrp).trim() !== "") {
+    const cleanMrp = parseFloat(String(productData.mrp).replace(/[^0-9.]/g, ""));
+    if (!isNaN(cleanMrp) && cleanMrp > 0) {
+      safeMrp = Math.round(cleanMrp);
+    }
+  }
+
+  // Separate weight_kg and pricing fields from core product payload
+  const { weight_kg, price_value, mrp, sale_price, price_display, purchase_mode, stock_quantity, in_stock, ...coreProductData } = productData as any;
   const productPayload: any = {
     ...coreProductData,
     id,
     price_value: safePrice,
+    sale_price: safePrice,
+    mrp: safeMrp,
     price_display: safePriceDisplay,
     purchase_mode: safePurchaseMode,
     stock_quantity: safeStockQuantity,
@@ -394,7 +405,11 @@ export async function updateProductWeight(id: string, weightKg: number) {
   return { success: true, weight_kg: safeWeight };
 }
 
-export async function updateProductPrice(id: string, priceValue: number | string) {
+export async function updateProductPrice(
+  id: string, 
+  priceValue: number | string, 
+  mrpValue?: number | string | null
+) {
   const supabase = createAdminClient();
   const cleanPrice = typeof priceValue === 'number' 
     ? priceValue 
@@ -404,12 +419,24 @@ export async function updateProductPrice(id: string, priceValue: number | string
   const priceDisplay = safePrice ? `₹${safePrice.toLocaleString('en-IN')}` : "Contact for Price";
   const purchaseMode: "buy_online" | "contact_for_price" = safePrice ? "buy_online" : "contact_for_price";
 
-  const { error } = await supabase.from('products').update({
+  const updateData: any = {
     price_value: safePrice,
+    sale_price: safePrice,
     price_display: priceDisplay,
     purchase_mode: purchaseMode,
     updated_at: new Date().toISOString()
-  }).eq('id', id);
+  };
+
+  if (mrpValue !== undefined) {
+    if (mrpValue === null || String(mrpValue).trim() === "") {
+      updateData.mrp = null;
+    } else {
+      const cleanMrp = typeof mrpValue === 'number' ? mrpValue : parseFloat(String(mrpValue).replace(/[^0-9.]/g, ''));
+      updateData.mrp = !isNaN(cleanMrp) && cleanMrp > 0 ? Math.round(cleanMrp) : null;
+    }
+  }
+
+  const { error } = await supabase.from('products').update(updateData).eq('id', id);
 
   if (error) throw new Error(error.message);
 
@@ -421,7 +448,14 @@ export async function updateProductPrice(id: string, priceValue: number | string
   revalidatePath('/checkout');
   revalidatePath('/');
 
-  return { success: true, price_value: safePrice, price_display: priceDisplay, purchase_mode: purchaseMode };
+  return { 
+    success: true, 
+    price_value: safePrice, 
+    sale_price: safePrice,
+    mrp: updateData.mrp,
+    price_display: priceDisplay, 
+    purchase_mode: purchaseMode 
+  };
 }
 
 export async function deleteProduct(id: string) {

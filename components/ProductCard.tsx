@@ -22,6 +22,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? formatPrice(product.price_value) 
     : (product.price_display || "Contact for Price");
 
+  const hasDiscount = Boolean(
+    product.mrp &&
+    product.price_value &&
+    Number(product.mrp) > Number(product.price_value)
+  );
+  const discountPercent = hasDiscount
+    ? Math.round(((Number(product.mrp) - Number(product.price_value)) / Number(product.mrp)) * 100)
+    : 0;
+
   const restockWhatsAppMessage = encodeURIComponent(
     `Hello Sivansh Enterprise, I am interested in ${product.name} (Model: ${product.model || 'N/A'}), but noticed it is currently Out of Stock. When will new inventory arrive or can I pre-order?`
   );
@@ -44,6 +53,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="product-badge bg-amber-600 text-white font-bold animate-pulse">Only {stockInfo.quantity} Left</span>
         ) : product.badge ? (
           <span className="product-badge">{product.badge}</span>
+        ) : hasDiscount ? (
+          <span className="product-badge bg-emerald-600 text-white font-bold tracking-wide">{discountPercent}% OFF</span>
         ) : null}
 
         <Link href={`/product-details/${product.id}`} className="product-img-link">
@@ -92,8 +103,25 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="product-card-footer flex-col items-stretch gap-2.5">
           <div className="flex items-center justify-between w-full">
             <div className="product-price-block">
-              <span className="price-label">Pricing</span>
-              <span className="product-price-val">{displayPrice}</span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="price-label">Price</span>
+                {hasDiscount && (
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/70 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                    {discountPercent}% OFF
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline flex-wrap gap-1.5">
+                {hasDiscount && (
+                  <span 
+                    className="line-through text-xs text-neutral-400 font-mono" 
+                    title={`Maximum Retail Price (MRP): ${formatPrice(product.mrp!)}`}
+                  >
+                    {formatPrice(product.mrp!)}
+                  </span>
+                )}
+                <span className="product-price-val">{displayPrice}</span>
+              </div>
             </div>
             {stockInfo.isLowStock && (
               <span className="text-[11px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
