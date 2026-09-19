@@ -119,6 +119,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                   </span>
                 )}
                 <span className="product-price-val">{displayPrice}</span>
+                {product.price_value && Number(product.price_value) > 0 && (
+                  <span className="text-[10px] font-medium text-emerald-400/90 whitespace-nowrap">
+                    (Incl. GST)
+                  </span>
+                )}
               </div>
             </div>
             {stockInfo.isLowStock && (

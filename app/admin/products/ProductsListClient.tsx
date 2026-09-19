@@ -346,7 +346,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                 <th className="py-3 px-4">Hardware Item</th>
                 <th className="py-3 px-4">Discipline</th>
                 <th className="py-3 px-4">Package Weight</th>
-                <th className="py-3 px-4">Pricing Mode</th>
+                <th className="py-3 px-4">Price (Incl. GST) & MRP</th>
                 <th className="py-3 px-4">Stock Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -436,7 +436,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                       {editingPriceId === product.id ? (
                         <div className="flex flex-col gap-1.5 p-2 rounded bg-carbon-900/95 border border-gold/40 shadow-xl min-w-[190px]">
                           <div>
-                            <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">Selling Price (₹)</span>
+                            <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">Selling Price (₹ Incl. GST)</span>
                             <div className="flex items-center rounded border border-gold/40 bg-carbon-950 overflow-hidden focus-within:border-gold">
                               <span className="px-2 py-1 bg-carbon-900 text-gold text-xs font-bold border-r border-gold/25 select-none shrink-0">₹</span>
                               <input
@@ -513,6 +513,11 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                             <span className="font-bold text-gold">
                               {getProductDisplayPrice(product)}
                             </span>
+                            {product.price_value && Number(product.price_value) > 0 && (
+                              <span className="text-[10px] text-emerald-400 font-normal font-sans">
+                                (Incl. GST)
+                              </span>
+                            )}
                             <Edit3 size={11} className="opacity-0 group-hover:opacity-100 text-gold transition-opacity" />
                           </button>
                           <span className="text-[10px] text-muted capitalize">

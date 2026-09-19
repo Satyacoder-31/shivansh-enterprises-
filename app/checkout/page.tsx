@@ -40,10 +40,11 @@ export default function CheckoutPage() {
   const [paymentError, setPaymentError] = useState("");
   const [showSimModal, setShowSimModal] = useState<any>(null);
 
-  // Financial Breakdown
-  const tax = Math.round(subtotal * 0.18);
+  // Financial Breakdown (All selling prices are already inclusive of 18% GST)
   const shippingFee = selectedCourier ? selectedCourier.total_charge : 0;
-  const finalTotal = subtotal + tax + shippingFee;
+  const finalTotal = subtotal + shippingFee;
+  const includedGst = Math.round(subtotal - (subtotal / 1.18));
+  const tax = includedGst;
   const hasUnpricedItems = cart.some((i) => !i.product.price_value || Number(i.product.price_value) <= 0);
   const outOfStockItems = cart.filter((i) => !getProductStockStatus(i.product).isAvailable);
   const hasOutOfStockItems = outOfStockItems.length > 0;
@@ -614,6 +615,11 @@ export default function CheckoutPage() {
                               ? formatPrice(Number(product.price_value) * quantity)
                               : product.price_display || "Contact for Price"}
                           </span>
+                          {product.price_value && (
+                            <span className="text-[10px] text-emerald-400 font-medium block">
+                              (incl. GST)
+                            </span>
+                          )}
                           {quantity > 1 && product.price_value && (
                             <span className="text-[10px] text-muted font-mono block">
                               ({formatPrice(Number(product.price_value))} ea)
@@ -628,7 +634,7 @@ export default function CheckoutPage() {
                 {/* Bill Breakdown */}
                 <div className="space-y-2.5 pt-4 border-t border-gold/15 text-sm">
                   <div className="flex justify-between text-secondary">
-                    <span>Hardware Subtotal:</span>
+                    <span>Hardware Subtotal (Incl. GST):</span>
                     <span className="font-mono">{formatPrice(subtotal)}</span>
                   </div>
 
@@ -646,9 +652,14 @@ export default function CheckoutPage() {
                     <span className="font-mono text-neutral-300 font-medium">{totalWeightKg.toFixed(2)} kg</span>
                   </div>
 
-                  <div className="flex justify-between text-secondary">
-                    <span>Estimated GST (18%):</span>
-                    <span className="font-mono">{formatPrice(tax)}</span>
+                  <div className="flex justify-between items-center text-secondary text-xs py-1 px-2.5 rounded bg-white/[0.02] border border-white/5">
+                    <span className="flex items-center gap-1.5">
+                      <span>GST (18%):</span>
+                      <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/20 font-medium">Included in Price</span>
+                    </span>
+                    <span className="font-mono text-neutral-300">
+                      ₹{includedGst.toLocaleString("en-IN")}
+                    </span>
                   </div>
 
                   <div className="flex justify-between items-center text-secondary">

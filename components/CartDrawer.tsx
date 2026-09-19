@@ -74,6 +74,11 @@ export default function CartDrawer() {
                         <span>
                           {getProductDisplayPrice(product)}
                         </span>
+                        {product.price_value && Number(product.price_value) > 0 && (
+                          <span className="text-[10px] text-emerald-400 font-medium">
+                            (Incl. GST)
+                          </span>
+                        )}
                       </div>
 
                       {/* Stock Alert in Cart Item */}
@@ -129,12 +134,12 @@ export default function CartDrawer() {
           <div className="cart-drawer-footer">
             {subtotal > 0 && (
               <div className="cart-subtotal-row">
-                <span>Estimated Subtotal:</span>
+                <span>Subtotal (Incl. GST):</span>
                 <span className="cart-subtotal-val">{formatPrice(subtotal)}</span>
               </div>
             )}
             <p className="cart-disclaimer">
-              Tax & installation estimates finalized upon verification.
+              All prices include 18% GST. Delivery calculated at checkout.
             </p>
 
             {hasOutOfStockItems && (

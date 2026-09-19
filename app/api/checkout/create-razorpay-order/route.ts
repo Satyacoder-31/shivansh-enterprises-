@@ -74,9 +74,10 @@ export async function POST(req: Request) {
 
     totalOrderWeightKg = Math.max(0.5, Math.round(totalOrderWeightKg * 100) / 100);
 
-    const taxAmount = Math.round(calculatedSubtotal * 0.18);
+    // All product selling prices are inclusive of 18% GST
+    const includedTax = Math.round(calculatedSubtotal - (calculatedSubtotal / 1.18));
     const shippingFee = Math.max(0, Number(courier?.total_charge || courier?.freight_charge || 0));
-    const finalTotal = calculatedSubtotal + taxAmount + shippingFee;
+    const finalTotal = calculatedSubtotal + shippingFee;
 
     const orderNumber = `SE-${Date.now().toString().slice(-6)}`;
 
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
           company: customer.company || '',
         },
         subtotal: calculatedSubtotal,
-        tax: taxAmount,
+        tax: includedTax,
         discount: 0,
         total: finalTotal,
         order_status: 'pending',

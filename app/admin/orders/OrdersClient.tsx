@@ -86,7 +86,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
   };
 
   const exportCSV = () => {
-    const headers = ["Order Number", "Date", "Customer Name", "Phone", "Email", "Items Count", "Subtotal", "Tax", "Total", "Payment Status", "Order Status"];
+    const headers = ["Order Number", "Date", "Customer Name", "Phone", "Email", "Items Count", "Subtotal (Incl. GST)", "Included GST (18%)", "Total", "Payment Status", "Order Status"];
     const rows = filtered.map(o => [
       o.order_number,
       new Date(o.created_at).toLocaleDateString(),
@@ -336,7 +336,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
             {/* Totals Breakdown */}
             <div className="bg-white/[0.02] p-4 rounded border border-white/5 space-y-2 text-xs font-mono">
               <div className="flex justify-between text-neutral-400">
-                <span>Subtotal</span>
+                <span>Subtotal (Incl. GST)</span>
                 <span>₹{Number(selectedOrder.subtotal).toLocaleString("en-IN")}</span>
               </div>
               {Number(selectedOrder.discount) > 0 && (
@@ -347,8 +347,8 @@ export default function OrdersClient({ initialOrders }: { initialOrders: Order[]
               )}
               {Number(selectedOrder.tax) > 0 && (
                 <div className="flex justify-between text-neutral-400">
-                  <span>GST / Taxes</span>
-                  <span>+₹{Number(selectedOrder.tax).toLocaleString("en-IN")}</span>
+                  <span>Included GST (18%)</span>
+                  <span className="text-emerald-400">₹{Number(selectedOrder.tax).toLocaleString("en-IN")} (incl.)</span>
                 </div>
               )}
               <div className="flex justify-between text-base font-semibold text-white pt-2 border-t border-white/10">

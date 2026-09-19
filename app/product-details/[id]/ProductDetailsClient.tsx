@@ -183,6 +183,11 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                 <span className="text-3xl font-bold text-gold font-mono tracking-tight">
                   {displayPrice}
                 </span>
+                {isBuyOnline && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-500/30">
+                    Incl. GST
+                  </span>
+                )}
                 {hasDiscount && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                     <span>⚡</span> {discountPercent}% OFF
@@ -194,10 +199,15 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                   <span>✓</span> You save <strong className="font-mono">₹{savingsAmount.toLocaleString("en-IN")}</strong> ({discountPercent}%) directly from authorized distributor stock
                 </p>
               )}
+              {isBuyOnline && (
+                <p className="text-xs text-neutral-400 mt-1.5 flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> Price is inclusive of 18% GST. Zero tax surcharge at checkout.
+                </p>
+              )}
             </div>
             <div className="text-xs text-secondary sm:max-w-[210px] sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-gold/10">
               {isBuyOnline 
-                ? "Ex-Keshod warehouse • Official manufacturer warranty • GST & shipping estimated at checkout" 
+                ? "Ex-Keshod warehouse • Official manufacturer warranty • Price includes 18% GST" 
                 : "Genuine brand quotation directly from authorized distributor"}
             </div>
           </div>

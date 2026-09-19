@@ -109,7 +109,10 @@ function SuccessContent() {
           )}
 
           <div className="flex justify-between items-center pt-1 font-bold text-base">
-            <span className="text-white">Amount Paid:</span>
+            <div>
+              <span className="text-white block">Amount Paid:</span>
+              <span className="text-[11px] font-normal text-emerald-400">Inclusive of 18% GST</span>
+            </div>
             <span className="text-gold">{totalAmount}</span>
           </div>
         </div>
@@ -126,7 +129,10 @@ function SuccessContent() {
                   <span>
                     {item.quantity}x {item.product_name}
                   </span>
-                  <span className="font-mono">{formatPrice(item.total)}</span>
+                  <div className="text-right">
+                    <span className="font-mono">{formatPrice(item.total)}</span>
+                    <span className="text-[10px] text-emerald-400 block font-sans">incl. GST</span>
+                  </div>
                 </div>
               ))}
             </div>

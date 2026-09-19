@@ -348,7 +348,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-carbon-900/90 border border-gold/20 rounded-lg">
           <div>
             <label className="form-label text-xs block mb-1 text-white font-semibold">
-              Selling Price (₹ Customer Pays) *
+              Selling Price (₹ Customer Pays - Incl. GST) *
             </label>
             <div className="flex items-stretch rounded-lg overflow-hidden border border-gold/40 focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/25 transition-all bg-carbon-950">
               <span className="inline-flex items-center justify-center px-4 bg-carbon-900 border-r border-gold/30 text-gold font-bold text-sm select-none shrink-0">
@@ -380,7 +380,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
               />
             </div>
             <span className="text-[11px] text-neutral-400 mt-1 block">
-              Active direct checkout price. Customer pays this amount online.
+              Active direct checkout price (inclusive of 18% GST). Customer pays this exact product price online with zero extra tax added at checkout.
             </span>
           </div>
 
@@ -433,6 +433,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
                         <span className="text-base font-bold text-gold font-mono">
                           ₹{Math.round(cleanPrice).toLocaleString("en-IN")}
                         </span>
+                        <span className="text-[10px] text-emerald-400 font-medium">
+                          (Incl. GST)
+                        </span>
                         <span className="text-[10px] font-bold text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-500/30">
                           {discount}% OFF
                         </span>
@@ -453,7 +456,7 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
             } else if (hasValidPrice) {
               return (
                 <div className="sm:col-span-2 p-2.5 bg-carbon-950/40 border border-neutral-700/50 rounded-lg text-xs text-neutral-400 flex items-center justify-between">
-                  <span>Display price: <strong className="text-white">₹{Math.round(cleanPrice).toLocaleString("en-IN")}</strong></span>
+                  <span>Display price: <strong className="text-white">₹{Math.round(cleanPrice).toLocaleString("en-IN")}</strong> <span className="text-[10px] text-emerald-400 font-medium ml-1">(Incl. GST)</span></span>
                   <span className="text-[11px] text-muted">Add an MRP above to show strikethrough price and savings badge.</span>
                 </div>
               );
