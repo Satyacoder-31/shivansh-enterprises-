@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getProductDisplayPrice } from "@/lib/utils";
 import { getProductStockStatus } from "@/lib/stock";
 
 export default function CartDrawer() {
@@ -72,7 +72,7 @@ export default function CartDrawer() {
                           </span>
                         )}
                         <span>
-                          {product.price_value ? formatPrice(product.price_value) : product.price_display || "Contact for Price"}
+                          {getProductDisplayPrice(product)}
                         </span>
                       </div>
 

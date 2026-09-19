@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
 import { useCart } from "@/components/CartContext";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getProductDisplayPrice } from "@/lib/utils";
 import { getProductStockStatus } from "@/lib/stock";
 
 interface ProductDetailsClientProps {
@@ -20,9 +20,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   const stockInfo = getProductStockStatus(product);
 
   const isBuyOnline = Boolean(product.price_value) || product.purchase_mode === "buy_online";
-  const displayPrice = product.price_value
-    ? formatPrice(product.price_value)
-    : product.price_display || "Contact for Price";
+  const displayPrice = getProductDisplayPrice(product);
 
   const hasDiscount = Boolean(
     product.mrp &&

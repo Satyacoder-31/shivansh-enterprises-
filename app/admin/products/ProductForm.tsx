@@ -139,9 +139,12 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         ? "buy_online" 
         : (formData.purchase_mode as any);
 
-      const safePriceDisplay = safePriceVal !== null && safePriceVal > 0
-        ? `₹${safePriceVal.toLocaleString('en-IN')}`
-        : (formData.price_display || "Contact for Price");
+      const userEnteredDisplay = formData.price_display?.trim();
+      const safePriceDisplay = userEnteredDisplay && userEnteredDisplay !== ""
+        ? userEnteredDisplay
+        : (safePriceVal !== null && safePriceVal > 0
+            ? `₹${safePriceVal.toLocaleString('en-IN')}`
+            : "Contact for Price");
 
       const productPayload: Partial<Product> = {
         ...(initialProduct?.id ? { id: initialProduct.id } : {}),
@@ -360,10 +363,17 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
                   const val = e.target.value;
                   const clean = val.replace(/[^0-9.]/g, "");
                   const num = parseFloat(clean);
+                  const currentDisplay = formData.price_display?.trim() || "";
+                  const isAutoDisplay = !currentDisplay || 
+                    currentDisplay.toLowerCase().includes("contact") || 
+                    /^₹[\d,]+$/.test(currentDisplay);
+
                   setFormData({
                     ...formData,
                     price_value: val,
-                    price_display: !isNaN(num) && num > 0 ? `₹${Math.round(num).toLocaleString('en-IN')}` : formData.price_display,
+                    price_display: isAutoDisplay && !isNaN(num) && num > 0 
+                      ? `₹${Math.round(num).toLocaleString('en-IN')}` 
+                      : formData.price_display,
                     purchase_mode: !isNaN(num) && num > 0 ? "buy_online" : formData.purchase_mode
                   });
                 }}

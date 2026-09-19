@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
 import { deleteProduct, toggleProductStock, updateProductWeight, updateProductPrice, updateProductStockQuantity } from "@/lib/actions/admin";
 import { Plus, Search, Edit3, Trash2, CheckCircle2, XCircle, ExternalLink, Check, X, AlertTriangle, ArrowUpDown, RefreshCw } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getProductDisplayPrice } from "@/lib/utils";
 import { getProductStockStatus } from "@/lib/stock";
 
 export default function ProductsListClient({ initialProducts }: { initialProducts: Product[] }) {
@@ -511,7 +511,7 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                             title="Click to quickly edit Selling Price & MRP"
                           >
                             <span className="font-bold text-gold">
-                              {product.price_value ? formatPrice(product.price_value) : product.price_display}
+                              {getProductDisplayPrice(product)}
                             </span>
                             <Edit3 size={11} className="opacity-0 group-hover:opacity-100 text-gold transition-opacity" />
                           </button>

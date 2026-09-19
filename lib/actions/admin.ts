@@ -253,15 +253,17 @@ export async function saveProduct(
     }
   }
 
-  let safePriceDisplay = productData.price_display;
+  let safePriceDisplay = productData.price_display ? String(productData.price_display).trim() : "";
   let safePurchaseMode = productData.purchase_mode;
-  if (safePrice !== null && safePrice > 0) {
-    if (!safePriceDisplay || safePriceDisplay.toLowerCase().includes("contact") || safePriceDisplay.trim() === "") {
+  if (!safePriceDisplay || safePriceDisplay === "") {
+    if (safePrice !== null && safePrice > 0) {
       safePriceDisplay = `₹${safePrice.toLocaleString("en-IN")}`;
+    } else {
+      safePriceDisplay = "Contact for Price";
     }
-    if (!safePurchaseMode || safePurchaseMode === "contact_for_price") {
-      safePurchaseMode = "buy_online";
-    }
+  }
+  if (safePrice !== null && safePrice > 0 && (!safePurchaseMode || safePurchaseMode === "contact_for_price")) {
+    safePurchaseMode = "buy_online";
   }
 
   // Parse and sanitize stock_quantity safely
