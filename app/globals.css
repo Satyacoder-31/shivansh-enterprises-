@@ -1826,6 +1826,18 @@ body.theme-light .product-title {
   border: 1px solid rgba(37, 211, 102, 0.3);
 }
 
+.stock-pill.low-stock {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.stock-pill.out-of-stock {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 .product-short-desc {
   font-size: 0.88rem;
   line-height: 1.65;

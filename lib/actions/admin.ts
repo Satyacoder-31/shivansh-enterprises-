@@ -264,14 +264,26 @@ export async function saveProduct(
     }
   }
 
+  // Parse and sanitize stock_quantity safely
+  let safeStockQuantity = 100;
+  if (productData.stock_quantity !== undefined && productData.stock_quantity !== null && String(productData.stock_quantity).trim() !== "") {
+    const cleanQty = parseInt(String(productData.stock_quantity), 10);
+    safeStockQuantity = isNaN(cleanQty) ? 0 : Math.max(0, cleanQty);
+  } else if (productData.in_stock === false) {
+    safeStockQuantity = 0;
+  }
+  const safeInStock = productData.in_stock !== false && safeStockQuantity > 0;
+
   // Separate weight_kg from core product payload to avoid schema errors if column is not yet present
-  const { weight_kg, price_value, price_display, purchase_mode, ...coreProductData } = productData as any;
+  const { weight_kg, price_value, price_display, purchase_mode, stock_quantity, in_stock, ...coreProductData } = productData as any;
   const productPayload: any = {
     ...coreProductData,
     id,
     price_value: safePrice,
     price_display: safePriceDisplay,
     purchase_mode: safePurchaseMode,
+    stock_quantity: safeStockQuantity,
+    in_stock: safeInStock,
     updated_at: new Date().toISOString()
   };
 
@@ -421,12 +433,59 @@ export async function deleteProduct(id: string) {
   return { success: true };
 }
 
-export async function toggleProductStock(id: string, in_stock: boolean) {
+export async function toggleProductStock(id: string, in_stock: boolean, stock_quantity?: number) {
   const supabase = createAdminClient();
-  const { error } = await supabase.from('products').update({ in_stock }).eq('id', id);
+  const updatePayload: any = { 
+    in_stock,
+    updated_at: new Date().toISOString()
+  };
+  
+  if (stock_quantity !== undefined) {
+    updatePayload.stock_quantity = Math.max(0, stock_quantity);
+  } else if (!in_stock) {
+    updatePayload.stock_quantity = 0;
+  } else {
+    // If turning on and stock is 0, give it a default stock of 50
+    const { data: current } = await supabase.from('products').select('stock_quantity').eq('id', id).single();
+    if (!current?.stock_quantity || current.stock_quantity <= 0) {
+      updatePayload.stock_quantity = 50;
+    }
+  }
+
+  const { error } = await supabase.from('products').update(updatePayload).eq('id', id);
   if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/admin/products', 'layout');
   revalidatePath('/shop');
-  return { success: true };
+  revalidatePath(`/product-details/${id}`);
+  revalidatePath('/checkout');
+  revalidatePath('/');
+  return { success: true, in_stock, stock_quantity: updatePayload.stock_quantity };
+}
+
+export async function updateProductStockQuantity(id: string, stock_quantity: number) {
+  const supabase = createAdminClient();
+  const safeQty = Math.max(0, Math.round(stock_quantity));
+  const inStock = safeQty > 0;
+
+  const { error } = await supabase.from('products').update({
+    stock_quantity: safeQty,
+    in_stock: inStock,
+    updated_at: new Date().toISOString()
+  }).eq('id', id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/admin/products', 'layout');
+  revalidatePath('/shop');
+  revalidatePath(`/product-details/${id}`);
+  revalidatePath('/checkout');
+  revalidatePath('/');
+  return { success: true, stock_quantity: safeQty, in_stock: inStock };
 }
 
 // ============================================================================

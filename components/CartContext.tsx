@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { Product } from "@/types/database";
+import { getProductStockStatus } from "@/lib/stock";
 
 export interface CartItem {
   product: Product;
@@ -52,6 +53,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 product: {
                   ...item.product,
                   ...fresh,
+                  in_stock: fresh.in_stock !== undefined ? fresh.in_stock : item.product.in_stock,
+                  stock_quantity: fresh.stock_quantity !== undefined ? fresh.stock_quantity : item.product.stock_quantity,
                   weight_kg: Number(fresh.weight_kg) > 0 ? fresh.weight_kg : item.product.weight_kg || 1.0,
                   price_value: fresh.price_value !== undefined ? fresh.price_value : item.product.price_value,
                   price_display: fresh.price_display || item.product.price_display,
@@ -93,8 +96,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart]);
 
   const addToCart = (product: Product, quantity = 1) => {
+    const stockInfo = getProductStockStatus(product);
+    if (!stockInfo.isAvailable) {
+      alert(`Sorry, "${product.name}" is currently Out of Stock.`);
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
+      const currentCartQty = existing ? existing.quantity : 0;
+      const targetQty = currentCartQty + quantity;
+
+      if (targetQty > stockInfo.quantity) {
+        alert(`Only ${stockInfo.quantity} units of "${product.name}" are currently available in stock. Your cart has been updated to the maximum available count.`);
+        const clampedQty = stockInfo.quantity;
+        if (existing) {
+          return prev.map((item) =>
+            item.product.id === product.id ? { ...item, product, quantity: clampedQty } : item
+          );
+        }
+        return [...prev, { product, quantity: clampedQty }];
+      }
+
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
@@ -116,9 +139,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
+
+    const targetItem = cart.find(i => i.product.id === productId);
+    let finalQty = quantity;
+    if (targetItem) {
+      const stockInfo = getProductStockStatus(targetItem.product);
+      if (quantity > stockInfo.quantity) {
+        alert(`Maximum available stock for "${targetItem.product.name}" is ${stockInfo.quantity} units.`);
+        finalQty = stockInfo.quantity;
+      }
+    }
+
     setCart((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item.product.id === productId ? { ...item, quantity: finalQty } : item
       )
     );
   };

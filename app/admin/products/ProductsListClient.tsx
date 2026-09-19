@@ -4,15 +4,17 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
-import { deleteProduct, toggleProductStock, updateProductWeight, updateProductPrice } from "@/lib/actions/admin";
-import { Plus, Search, Edit3, Trash2, CheckCircle2, XCircle, ExternalLink, Check, X } from "lucide-react";
+import { deleteProduct, toggleProductStock, updateProductWeight, updateProductPrice, updateProductStockQuantity } from "@/lib/actions/admin";
+import { Plus, Search, Edit3, Trash2, CheckCircle2, XCircle, ExternalLink, Check, X, AlertTriangle, ArrowUpDown, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { getProductStockStatus } from "@/lib/stock";
 
 export default function ProductsListClient({ initialProducts }: { initialProducts: Product[] }) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [stockFilter, setStockFilter] = useState<"all" | "in_stock" | "low_stock" | "out_of_stock">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Quick weight inline edit state
@@ -24,6 +26,11 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [tempPrice, setTempPrice] = useState<string>("");
   const [savingPriceId, setSavingPriceId] = useState<string | null>(null);
+
+  // Quick stock quantity inline edit state
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [tempStock, setTempStock] = useState<string>("");
+  const [savingStockId, setSavingStockId] = useState<string | null>(null);
 
   const startEditWeight = (product: Product) => {
     setEditingWeightId(product.id);
@@ -89,23 +96,91 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
     }
   }, []);
 
+  const startEditStock = (product: Product) => {
+    setEditingStockId(product.id);
+    const stockInfo = getProductStockStatus(product);
+    setTempStock(String(stockInfo.quantity));
+  };
+
+  const handleSaveStock = async (productId: string) => {
+    const clean = tempStock.replace(/[^0-9]/g, "");
+    const val = parseInt(clean, 10);
+    if (isNaN(val) || val < 0) {
+      alert("Please enter a valid non-negative integer stock quantity (e.g. 0, 5, 50)");
+      return;
+    }
+    setSavingStockId(productId);
+    try {
+      const res = await updateProductStockQuantity(productId, val);
+      setProducts(products.map(p => p.id === productId ? {
+        ...p,
+        stock_quantity: res.stock_quantity,
+        in_stock: res.in_stock
+      } : p));
+      setEditingStockId(null);
+      router.refresh();
+    } catch (err: any) {
+      alert("Failed to update stock quantity: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingStockId(null);
+    }
+  };
+
+  const handleStepStock = async (product: Product, delta: number) => {
+    const currentQty = product.stock_quantity !== undefined && product.stock_quantity !== null
+      ? Number(product.stock_quantity)
+      : (product.in_stock !== false ? 100 : 0);
+    const newQty = Math.max(0, currentQty + delta);
+    setSavingStockId(product.id);
+    try {
+      const res = await updateProductStockQuantity(product.id, newQty);
+      setProducts(products.map(p => p.id === product.id ? {
+        ...p,
+        stock_quantity: res.stock_quantity,
+        in_stock: res.in_stock
+      } : p));
+      router.refresh();
+    } catch (err: any) {
+      alert("Failed to adjust stock: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingStockId(null);
+    }
+  };
+
+  const handleToggleStock = async (id: string, currentStock: boolean) => {
+    try {
+      const res = await toggleProductStock(id, !currentStock);
+      setProducts(products.map(p => p.id === id ? { 
+        ...p, 
+        in_stock: res.in_stock,
+        stock_quantity: res.stock_quantity !== undefined ? res.stock_quantity : (res.in_stock ? 50 : 0)
+      } : p));
+      router.refresh();
+    } catch (err) {
+      alert("Failed to update stock status.");
+    }
+  };
+
+  const totalCount = products.length;
+  const inStockCount = products.filter((p) => getProductStockStatus(p).status === "in_stock").length;
+  const lowStockCount = products.filter((p) => getProductStockStatus(p).status === "low_stock").length;
+  const outOfStockCount = products.filter((p) => getProductStockStatus(p).status === "out_of_stock").length;
+
   const filtered = products.filter((p) => {
     const matchesCategory = categoryFilter === "all" || p.category_id === categoryFilter;
     const matchesSearch = !search.trim() || 
       p.name.toLowerCase().includes(search.toLowerCase()) || 
       p.model?.toLowerCase().includes(search.toLowerCase()) ||
       p.brand?.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+    
+    const stockInfo = getProductStockStatus(p);
+    const matchesStock = stockFilter === "all" 
+      || (stockFilter === "in_stock" && stockInfo.status === "in_stock")
+      || (stockFilter === "low_stock" && stockInfo.status === "low_stock")
+      || (stockFilter === "out_of_stock" && stockInfo.status === "out_of_stock");
 
-  const handleToggleStock = async (id: string, currentStock: boolean) => {
-    try {
-      await toggleProductStock(id, !currentStock);
-      setProducts(products.map(p => p.id === id ? { ...p, in_stock: !currentStock } : p));
-    } catch (err) {
-      alert("Failed to update stock status.");
-    }
-  };
+    return matchesCategory && matchesSearch && matchesStock;
+  });
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to permanently delete "${name}"? This action cannot be undone.`)) {
@@ -144,6 +219,70 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
         </Link>
       </div>
 
+      {/* Inventory KPI Summary Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button
+          type="button"
+          onClick={() => setStockFilter("all")}
+          className={`p-3 rounded-xl border text-left transition-all ${
+            stockFilter === "all" 
+              ? "bg-gold/15 border-gold shadow-lg shadow-gold/5" 
+              : "bg-carbon-800 border-gold/10 hover:border-gold/30"
+          }`}
+        >
+          <span className="text-[10px] uppercase font-bold tracking-wider text-muted block mb-1">Total Catalog</span>
+          <span className="text-xl font-mono font-bold text-white">{totalCount} items</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStockFilter("in_stock")}
+          className={`p-3 rounded-xl border text-left transition-all ${
+            stockFilter === "in_stock" 
+              ? "bg-emerald-950/80 border-emerald-500 shadow-lg shadow-emerald-500/10" 
+              : "bg-carbon-800 border-gold/10 hover:border-emerald-500/40"
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">In Stock</span>
+            <CheckCircle2 size={12} className="text-emerald-400" />
+          </div>
+          <span className="text-xl font-mono font-bold text-emerald-300">{inStockCount} healthy</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStockFilter("low_stock")}
+          className={`p-3 rounded-xl border text-left transition-all ${
+            stockFilter === "low_stock" 
+              ? "bg-amber-950/80 border-amber-500 shadow-lg shadow-amber-500/10" 
+              : "bg-carbon-800 border-gold/10 hover:border-amber-500/40"
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400">Low Stock (≤5)</span>
+            <AlertTriangle size={12} className="text-amber-400" />
+          </div>
+          <span className="text-xl font-mono font-bold text-amber-300">{lowStockCount} urgent</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStockFilter("out_of_stock")}
+          className={`p-3 rounded-xl border text-left transition-all ${
+            stockFilter === "out_of_stock" 
+              ? "bg-red-950/80 border-red-500 shadow-lg shadow-red-500/10" 
+              : "bg-carbon-800 border-gold/10 hover:border-red-500/40"
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-red-400">Out of Stock</span>
+            <XCircle size={12} className="text-red-400" />
+          </div>
+          <span className="text-xl font-mono font-bold text-red-300">{outOfStockCount} zero</span>
+        </button>
+      </div>
+
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap gap-4 items-center justify-between bg-carbon-800 p-4 rounded-xl border border-gold/15">
         <div className="relative flex-1 min-w-[240px]">
@@ -157,7 +296,18 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as any)}
+            className="bg-carbon-900 border border-gold/20 rounded px-3 py-2 text-xs text-secondary focus:outline-none focus:border-gold"
+          >
+            <option value="all">All Inventory ({totalCount})</option>
+            <option value="in_stock">In Stock ({inStockCount})</option>
+            <option value="low_stock">Low Stock ≤ 5 ({lowStockCount})</option>
+            <option value="out_of_stock">Out of Stock ({outOfStockCount})</option>
+          </select>
+
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -323,26 +473,112 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                     </td>
 
                     <td className="py-3 px-4">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStock(product.id, product.in_stock)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-colors ${
-                          product.in_stock 
-                            ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/60" 
-                            : "bg-red-950/60 text-red-400 border border-red-500/30 hover:bg-red-900/60"
-                        }`}
-                        title="Click to toggle stock"
-                      >
-                        {product.in_stock ? (
-                          <>
-                            <CheckCircle2 size={12} /> In Stock
-                          </>
-                        ) : (
-                          <>
-                            <XCircle size={12} /> Out of Stock
-                          </>
-                        )}
-                      </button>
+                      {(() => {
+                        const stockInfo = getProductStockStatus(product);
+                        const isEditingThis = editingStockId === product.id;
+                        const isSavingThis = savingStockId === product.id;
+
+                        return (
+                          <div className="space-y-1.5">
+                            {/* Visual Stock Pill */}
+                            <div className="flex items-center gap-2">
+                              {stockInfo.status === "out_of_stock" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-950/80 text-red-400 border border-red-500/30">
+                                  <XCircle size={11} /> Out of Stock
+                                </span>
+                              )}
+                              {stockInfo.status === "low_stock" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-950/80 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  <AlertTriangle size={11} /> Low Stock
+                                </span>
+                              )}
+                              {stockInfo.status === "in_stock" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
+                                  <CheckCircle2 size={11} /> In Stock
+                                </span>
+                              )}
+
+                              {/* Toggle Availability Switch Button */}
+                              <button
+                                type="button"
+                                disabled={isSavingThis}
+                                onClick={() => handleToggleStock(product.id, product.in_stock)}
+                                className="text-[10px] text-muted hover:text-gold transition-colors underline"
+                                title={product.in_stock ? "Mark as Out of Stock" : "Mark as In Stock"}
+                              >
+                                {product.in_stock ? "Turn Off" : "Turn On"}
+                              </button>
+                            </div>
+
+                            {/* Inline Stock Quantity Editor & Stepper */}
+                            {isEditingThis ? (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  className="w-16 bg-carbon-900 border border-gold rounded px-1.5 py-0.5 text-xs text-white font-mono focus:outline-none"
+                                  value={tempStock}
+                                  onChange={(e) => setTempStock(e.target.value)}
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleSaveStock(product.id);
+                                    if (e.key === "Escape") setEditingStockId(null);
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={isSavingThis}
+                                  onClick={() => handleSaveStock(product.id)}
+                                  className="p-1 rounded bg-gold text-black hover:bg-gold-light transition-colors"
+                                  title="Save stock count"
+                                >
+                                  <Check size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingStockId(null)}
+                                  className="p-1 rounded bg-carbon-900 text-muted hover:text-white"
+                                  title="Cancel"
+                                >
+                                  <X size={11} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-xs">
+                                <button
+                                  type="button"
+                                  disabled={isSavingThis || stockInfo.quantity <= 0}
+                                  onClick={() => handleStepStock(product, -1)}
+                                  className="w-5 h-5 flex items-center justify-center rounded bg-carbon-900 border border-gold/20 text-muted hover:text-white hover:border-gold disabled:opacity-30 text-xs font-mono"
+                                  title="Decrease stock by 1"
+                                >
+                                  -
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isSavingThis}
+                                  onClick={() => startEditStock(product)}
+                                  className="group inline-flex items-center gap-1 font-mono text-white/90 hover:text-gold transition-colors px-1 py-0.5 rounded hover:bg-gold/10"
+                                  title="Click to manually edit stock number"
+                                >
+                                  <span className="font-bold">{stockInfo.quantity}</span>
+                                  <span className="text-[10px] text-muted">units</span>
+                                  <Edit3 size={10} className="opacity-0 group-hover:opacity-100 text-gold transition-opacity" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isSavingThis}
+                                  onClick={() => handleStepStock(product, 1)}
+                                  className="w-5 h-5 flex items-center justify-center rounded bg-carbon-900 border border-gold/20 text-muted hover:text-white hover:border-gold disabled:opacity-30 text-xs font-mono"
+                                  title="Increase stock by 1"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-3 px-4 text-right">

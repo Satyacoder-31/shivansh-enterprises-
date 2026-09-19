@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     const { data: prods, error } = await supabase
       .from('products')
       .select(`
-        id, name, model, brand, price_value, price_display, purchase_mode, in_stock, main_image,
+        id, name, model, brand, price_value, price_display, purchase_mode, in_stock, stock_quantity, main_image,
         specs:product_specs(spec_name, spec_value)
       `)
       .in('id', ids);

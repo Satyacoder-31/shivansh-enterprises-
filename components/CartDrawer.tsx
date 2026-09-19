@@ -4,11 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/utils";
+import { getProductStockStatus } from "@/lib/stock";
 
 export default function CartDrawer() {
   const { cart, removeFromCart, updateQuantity, isCartOpen, setIsCartOpen, subtotal, totalCount } = useCart();
 
   if (!isCartOpen) return null;
+
+  const hasOutOfStockItems = cart.some(i => !getProductStockStatus(i.product).isAvailable);
 
   return (
     <div className="cart-drawer-overlay active" onClick={() => setIsCartOpen(false)}>
@@ -49,48 +52,67 @@ export default function CartDrawer() {
             </div>
           ) : (
             <ul className="cart-item-list">
-              {cart.map(({ product, quantity }) => (
-                <li key={product.id} className="cart-item">
-                  <img 
-                    src={product.main_image} 
-                    alt={product.name} 
-                    className="cart-item-thumb" 
-                  />
-                  <div className="cart-item-info">
-                    <h4 className="cart-item-name">{product.name}</h4>
-                    <p className="cart-item-model">{product.model || product.brand}</p>
-                    <p className="cart-item-price">
-                      {product.price_value ? formatPrice(product.price_value) : product.price_display || "Contact for Price"}
-                    </p>
-                    <div className="cart-item-actions">
-                      <div className="quantity-stepper">
+              {cart.map(({ product, quantity }) => {
+                const stockInfo = getProductStockStatus(product);
+
+                return (
+                  <li key={product.id} className={`cart-item ${!stockInfo.isAvailable ? "border border-red-500/30 bg-red-950/10 p-2 rounded" : ""}`}>
+                    <img 
+                      src={product.main_image} 
+                      alt={product.name} 
+                      className="cart-item-thumb" 
+                    />
+                    <div className="cart-item-info">
+                      <h4 className="cart-item-name">{product.name}</h4>
+                      <p className="cart-item-model">{product.model || product.brand}</p>
+                      <p className="cart-item-price">
+                        {product.price_value ? formatPrice(product.price_value) : product.price_display || "Contact for Price"}
+                      </p>
+
+                      {/* Stock Alert in Cart Item */}
+                      {!stockInfo.isAvailable ? (
+                        <p className="text-[11px] font-bold text-red-400 mt-0.5">
+                          ⚠️ Out of Stock — Please remove to checkout
+                        </p>
+                      ) : stockInfo.isLowStock ? (
+                        <p className="text-[10px] font-semibold text-amber-400 mt-0.5">
+                          ⚡ Only {stockInfo.quantity} left in stock
+                        </p>
+                      ) : null}
+
+                      <div className="cart-item-actions mt-1">
+                        <div className="quantity-stepper">
+                          <button 
+                            type="button" 
+                            onClick={() => updateQuantity(product.id, quantity - 1)}
+                            aria-label="Decrease quantity"
+                          >
+                            -
+                          </button>
+                          <span>{quantity}</span>
+                          <button 
+                            type="button" 
+                            disabled={!stockInfo.isAvailable || quantity >= stockInfo.quantity}
+                            onClick={() => updateQuantity(product.id, quantity + 1)}
+                            aria-label="Increase quantity"
+                            className="disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={quantity >= stockInfo.quantity ? `Maximum stock reached (${stockInfo.quantity})` : "Increase"}
+                          >
+                            +
+                          </button>
+                        </div>
                         <button 
                           type="button" 
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
-                          aria-label="Decrease quantity"
+                          className="cart-remove-link"
+                          onClick={() => removeFromCart(product.id)}
                         >
-                          -
-                        </button>
-                        <span>{quantity}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
-                          aria-label="Increase quantity"
-                        >
-                          +
+                          Remove
                         </button>
                       </div>
-                      <button 
-                        type="button" 
-                        className="cart-remove-link"
-                        onClick={() => removeFromCart(product.id)}
-                      >
-                        Remove
-                      </button>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -107,14 +129,32 @@ export default function CartDrawer() {
             <p className="cart-disclaimer">
               Tax & installation estimates finalized upon verification.
             </p>
+
+            {hasOutOfStockItems && (
+              <div className="p-2.5 rounded bg-red-950/70 border border-red-500/50 text-red-300 text-xs text-center mb-2">
+                An item in your cart is currently out of stock. Please remove it before proceeding.
+              </div>
+            )}
+
             <div className="cart-btn-group">
-              <Link 
-                href="/checkout" 
-                className="btn btn-gold w-full text-center" 
-                onClick={() => setIsCartOpen(false)}
-              >
-                Proceed to Checkout
-              </Link>
+              {!hasOutOfStockItems ? (
+                <Link 
+                  href="/checkout" 
+                  className="btn btn-gold w-full text-center" 
+                  onClick={() => setIsCartOpen(false)}
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="btn bg-neutral-800 text-neutral-500 border border-neutral-700 w-full text-center cursor-not-allowed font-medium"
+                >
+                  Cannot Checkout (Remove Sold Out Items)
+                </button>
+              )}
+
               <a 
                 href={`https://wa.me/917533838538?text=${encodeURIComponent(
                   `Hello Sivansh Enterprise, I would like to inquire about the following items:\n` +

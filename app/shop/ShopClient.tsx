@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import type { Product, Category } from "@/types/database";
 import ProductCard from "@/components/ProductCard";
+import { getProductStockStatus } from "@/lib/stock";
 
 interface ShopClientProps {
   products: Product[];
@@ -14,6 +15,7 @@ export default function ShopClient({ products, categories, initialCategory = "al
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   const filteredProducts = useMemo(() => {
     let list = [...products];
@@ -21,6 +23,11 @@ export default function ShopClient({ products, categories, initialCategory = "al
     // Category filter
     if (selectedCategory !== "all") {
       list = list.filter((p) => p.category_id === selectedCategory);
+    }
+
+    // In Stock Only filter
+    if (inStockOnly) {
+      list = list.filter((p) => getProductStockStatus(p).isAvailable);
     }
 
     // Search query filter
@@ -47,7 +54,7 @@ export default function ShopClient({ products, categories, initialCategory = "al
     }
 
     return list;
-  }, [products, selectedCategory, searchQuery, sortBy]);
+  }, [products, selectedCategory, searchQuery, sortBy, inStockOnly]);
 
   return (
     <div className="shop-page-wrapper">
@@ -76,7 +83,20 @@ export default function ShopClient({ products, categories, initialCategory = "al
           })}
         </div>
 
-        <div className="shop-search-sort-group flex gap-3 items-center">
+        <div className="shop-search-sort-group flex flex-wrap gap-3 items-center">
+          <button
+            type="button"
+            onClick={() => setInStockOnly(!inStockOnly)}
+            className={`filter-pill text-xs flex items-center gap-1.5 transition-all ${
+              inStockOnly
+                ? "bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20"
+                : "text-muted hover:text-white"
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${inStockOnly ? "bg-white" : "bg-emerald-400"}`}></span>
+            <span>In Stock Only</span>
+          </button>
+
           <div className="shop-search-input-wrap">
             <input
               type="text"

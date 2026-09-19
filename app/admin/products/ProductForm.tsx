@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveProduct } from "@/lib/actions/admin";
 import type { Product, ProductSpec, ProductFeature } from "@/types/database";
-import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import MediaUploadInput from "@/components/admin/MediaUploadInput";
+import { getProductStockStatus } from "@/lib/stock";
 
 interface ProductFormProps {
   initialProduct?: Product | null;
@@ -32,6 +33,9 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
       || (initialProduct?.weight_kg !== undefined && initialProduct?.weight_kg !== null && Number(initialProduct?.weight_kg) > 0 ? String(initialProduct.weight_kg) : "1.0"),
     rating: initialProduct?.rating || 5.0,
     in_stock: initialProduct?.in_stock !== false,
+    stock_quantity: initialProduct?.stock_quantity !== undefined && initialProduct?.stock_quantity !== null
+      ? String(initialProduct.stock_quantity)
+      : (initialProduct?.in_stock === false ? "0" : "100"),
     main_image: initialProduct?.main_image || "/assets/images/products/cofe-4g-solar-camera.jpg",
     short_desc: initialProduct?.short_desc || "",
     tagline: initialProduct?.tagline || "",
@@ -143,7 +147,8 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
         price_value: safePriceVal,
         weight_kg: formData.weight_kg ? Number(formData.weight_kg) : 1.0,
         rating: Number(formData.rating),
-        in_stock: Boolean(formData.in_stock),
+        stock_quantity: Math.max(0, parseInt(String(formData.stock_quantity || 0), 10) || 0),
+        in_stock: Boolean(formData.in_stock && (parseInt(String(formData.stock_quantity || 0), 10) || 0) > 0),
         main_image: formData.main_image,
         short_desc: formData.short_desc,
         tagline: formData.tagline,
@@ -390,26 +395,137 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-6 pt-2">
-          <label className="flex items-center gap-2 text-xs text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.in_stock}
-              onChange={(e) => setFormData({ ...formData, in_stock: e.target.checked })}
-              className="rounded accent-amber-500"
-            />
-            <span>In Stock / Immediate Availability</span>
-          </label>
+        {/* Inventory & Stock Section */}
+        <div className="p-4 bg-carbon-900/80 border border-gold/20 rounded-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs uppercase tracking-wider text-gold font-semibold flex items-center gap-2">
+              <span>Warehouse Stock & Inventory Control</span>
+            </h3>
+            {(() => {
+              const stockInfo = getProductStockStatus({
+                in_stock: formData.in_stock,
+                stock_quantity: formData.stock_quantity
+              });
+              if (stockInfo.status === 'out_of_stock') {
+                return (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold uppercase bg-red-950/80 text-red-400 border border-red-500/40">
+                    <XCircle size={13} /> Out of Stock (0)
+                  </span>
+                );
+              }
+              if (stockInfo.status === 'low_stock') {
+                return (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold uppercase bg-amber-950/80 text-amber-400 border border-amber-500/40 animate-pulse">
+                    <AlertTriangle size={13} /> Low Stock ({stockInfo.quantity} left)
+                  </span>
+                );
+              }
+              return (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold uppercase bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">
+                  <CheckCircle2 size={13} /> In Stock ({stockInfo.quantity} units)
+                </span>
+              );
+            })()}
+          </div>
 
-          <label className="flex items-center gap-2 text-xs text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.is_featured}
-              onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-              className="rounded accent-amber-500"
-            />
-            <span>Featured on Homepage</span>
-          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label text-xs block mb-1">
+                Stock Quantity Available (Units) *
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g. 50"
+                className="form-input text-sm font-mono"
+                value={formData.stock_quantity}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const num = parseInt(val, 10);
+                  setFormData({
+                    ...formData,
+                    stock_quantity: val,
+                    in_stock: !isNaN(num) && num > 0,
+                  });
+                }}
+              />
+              <span className="text-[10px] text-neutral-400 mt-1 block">
+                Units ≤ 5 trigger "Only X left!" urgency alerts on storefront. Setting 0 marks product Out of Stock.
+              </span>
+            </div>
+
+            <div className="flex flex-col justify-center space-y-3 pt-1">
+              <label className="flex items-center gap-2 text-xs text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.in_stock}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData({
+                      ...formData,
+                      in_stock: checked,
+                      stock_quantity: checked ? (parseInt(formData.stock_quantity, 10) > 0 ? formData.stock_quantity : "50") : "0",
+                    });
+                  }}
+                  className="rounded accent-amber-500 w-4 h-4"
+                />
+                <span className="font-medium text-white">In Stock / Immediate Availability</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="rounded accent-amber-500 w-4 h-4"
+                />
+                <span>Featured on Homepage</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Real-time Customer Storefront Stock Preview Alert */}
+          {(() => {
+            const stockInfo = getProductStockStatus({
+              in_stock: formData.in_stock,
+              stock_quantity: formData.stock_quantity
+            });
+
+            if (stockInfo.status === 'out_of_stock') {
+              return (
+                <div className="p-3 bg-red-950/40 border border-red-500/30 rounded text-xs text-red-300 flex items-start gap-2">
+                  <XCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block text-red-200">Storefront Notice: Out of Stock</strong>
+                    Customer Add to Cart and Buy Now buttons will be disabled. An "Inquire Availability via WhatsApp" button will be displayed instead.
+                  </div>
+                </div>
+              );
+            }
+
+            if (stockInfo.status === 'low_stock') {
+              return (
+                <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded text-xs text-amber-300 flex items-start gap-2">
+                  <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block text-amber-200">Storefront Notice: Low Stock Warning Active</strong>
+                    Customers will see an urgent badge <span className="underline font-mono font-bold">Only {stockInfo.quantity} left!</span> on product cards and details to incentivize quick order placement.
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div className="p-3 bg-emerald-950/30 border border-emerald-500/20 rounded text-xs text-emerald-300 flex items-start gap-2">
+                <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block text-emerald-200">Storefront Notice: Standard Stock Available</strong>
+                  Customers can purchase normally and order up to {stockInfo.quantity} units directly.
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

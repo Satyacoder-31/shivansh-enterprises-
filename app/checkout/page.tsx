@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
 import { formatPrice } from "@/lib/utils";
 import type { ShiprocketCourierOption } from "@/lib/shiprocket";
+import { getProductStockStatus } from "@/lib/stock";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -44,6 +45,8 @@ export default function CheckoutPage() {
   const shippingFee = selectedCourier ? selectedCourier.total_charge : 0;
   const finalTotal = subtotal + tax + shippingFee;
   const hasUnpricedItems = cart.some((i) => !i.product.price_value || Number(i.product.price_value) <= 0);
+  const outOfStockItems = cart.filter((i) => !getProductStockStatus(i.product).isAvailable);
+  const hasOutOfStockItems = outOfStockItems.length > 0;
 
   // Total package weight calculated from individual product weight_kg (defaulting to 1.0kg if unset)
   const totalWeightKg = Math.max(
@@ -535,66 +538,80 @@ export default function CheckoutPage() {
 
                 {/* Items Mini List */}
                 <div className="space-y-3 mb-6 max-h-72 overflow-y-auto pr-1 divide-y divide-gold/10">
-                  {cart.map(({ product, quantity }) => (
-                    <div key={product.id} className="pt-3 first:pt-0 flex gap-3 text-xs items-center justify-between">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <img
-                          src={product.main_image}
-                          alt={product.name}
-                          className="w-11 h-11 object-cover rounded border border-gold/20 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="font-medium text-white truncate max-w-[170px]" title={product.name}>
-                            {product.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="inline-flex items-center border border-gold/30 rounded bg-carbon-900/80">
+                  {cart.map(({ product, quantity }) => {
+                    const stockInfo = getProductStockStatus(product);
+
+                    return (
+                      <div key={product.id} className={`pt-3 first:pt-0 flex gap-3 text-xs items-center justify-between ${!stockInfo.isAvailable ? "opacity-75 bg-red-950/20 p-2 rounded border border-red-500/30" : ""}`}>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <img
+                            src={product.main_image}
+                            alt={product.name}
+                            className="w-11 h-11 object-cover rounded border border-gold/20 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="font-medium text-white truncate max-w-[170px]" title={product.name}>
+                              {product.name}
+                            </p>
+                            {!stockInfo.isAvailable ? (
+                              <p className="text-[10px] text-red-400 font-bold">
+                                🚫 Sold Out — remove to pay
+                              </p>
+                            ) : stockInfo.isLowStock ? (
+                              <p className="text-[10px] text-amber-400 font-semibold">
+                                ⚡ Only {stockInfo.quantity} left
+                              </p>
+                            ) : null}
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="inline-flex items-center border border-gold/30 rounded bg-carbon-900/80">
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(product.id, quantity - 1)}
+                                  className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold"
+                                  title="Decrease quantity"
+                                >
+                                  -
+                                </button>
+                                <span className="px-2 font-mono font-medium text-white">{quantity}</span>
+                                <button
+                                  type="button"
+                                  disabled={!stockInfo.isAvailable || quantity >= stockInfo.quantity}
+                                  onClick={() => updateQuantity(product.id, quantity + 1)}
+                                  className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title={quantity >= stockInfo.quantity ? `Maximum available stock reached (${stockInfo.quantity})` : "Increase quantity"}
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <span className="text-[10px] text-muted">
+                                • {Number(product.weight_kg) > 0 ? product.weight_kg : 1.0} kg
+                              </span>
                               <button
                                 type="button"
-                                onClick={() => updateQuantity(product.id, quantity - 1)}
-                                className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold"
-                                title="Decrease quantity"
+                                onClick={() => removeFromCart(product.id)}
+                                className="text-[11px] text-red-400 hover:text-red-300 ml-1"
+                                title="Remove item"
                               >
-                                -
-                              </button>
-                              <span className="px-2 font-mono font-medium text-white">{quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(product.id, quantity + 1)}
-                                className="px-2 py-0.5 text-gold hover:bg-gold/20 font-bold"
-                                title="Increase quantity"
-                              >
-                                +
+                                ✕
                               </button>
                             </div>
-                            <span className="text-[10px] text-muted">
-                              • {Number(product.weight_kg) > 0 ? product.weight_kg : 1.0} kg
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => removeFromCart(product.id)}
-                              className="text-[11px] text-red-400 hover:text-red-300 ml-1"
-                              title="Remove item"
-                            >
-                              ✕
-                            </button>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="font-mono text-white font-medium block">
-                          {product.price_value 
-                            ? formatPrice(Number(product.price_value) * quantity)
-                            : product.price_display || "Contact for Price"}
-                        </span>
-                        {quantity > 1 && product.price_value && (
-                          <span className="text-[10px] text-muted font-mono block">
-                            ({formatPrice(Number(product.price_value))} ea)
+                        <div className="text-right shrink-0">
+                          <span className="font-mono text-white font-medium block">
+                            {product.price_value 
+                              ? formatPrice(Number(product.price_value) * quantity)
+                              : product.price_display || "Contact for Price"}
                           </span>
-                        )}
+                          {quantity > 1 && product.price_value && (
+                            <span className="text-[10px] text-muted font-mono block">
+                              ({formatPrice(Number(product.price_value))} ea)
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Bill Breakdown */}
@@ -627,6 +644,18 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* Out of Stock Warning */}
+                {hasOutOfStockItems && (
+                  <div className="mt-4 p-3.5 bg-red-950/50 border border-red-500/50 rounded-lg text-xs text-red-300 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5 text-red-200">
+                      🚫 Out of Stock Items in Order
+                    </p>
+                    <p className="text-[11px] text-red-200/90 leading-relaxed">
+                      One or more products in your order are currently out of stock. Please click the ✕ icon above to remove them before completing payment.
+                    </p>
+                  </div>
+                )}
+
                 {/* Unpriced Warning */}
                 {hasUnpricedItems && (
                   <div className="mt-4 p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-lg text-xs text-amber-300 space-y-1">
@@ -643,7 +672,7 @@ export default function CheckoutPage() {
                 <div className="mt-6 space-y-3">
                   <button
                     type="submit"
-                    disabled={isProcessing || hasUnpricedItems}
+                    disabled={isProcessing || hasUnpricedItems || hasOutOfStockItems || cart.length === 0}
                     className="btn btn-gold w-full text-center font-bold py-3.5 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
@@ -651,6 +680,8 @@ export default function CheckoutPage() {
                         <span className="inline-block animate-spin">⟳</span>
                         <span>Connecting to Gateway...</span>
                       </>
+                    ) : hasOutOfStockItems ? (
+                      <span>Remove Out of Stock Items to Pay</span>
                     ) : (
                       <>
                         <span>Pay {formatPrice(finalTotal)} via Razorpay</span>

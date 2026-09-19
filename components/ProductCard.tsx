@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Product } from "@/types/database";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/utils";
+import { getProductStockStatus } from "@/lib/stock";
 
 interface ProductCardProps {
   product: Product;
@@ -14,34 +15,42 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const stockInfo = getProductStockStatus(product);
 
   const isBuyOnline = Boolean(product.price_value) || product.purchase_mode === 'buy_online';
   const displayPrice = product.price_value 
     ? formatPrice(product.price_value) 
     : (product.price_display || "Contact for Price");
 
-  const whatsappMessage = encodeURIComponent(
-    `Hello Sivansh Enterprise, I would like to inquire about ${product.name} (Model: ${product.model || 'N/A'}). Please share the price and availability.`
+  const restockWhatsAppMessage = encodeURIComponent(
+    `Hello Sivansh Enterprise, I am interested in ${product.name} (Model: ${product.model || 'N/A'}), but noticed it is currently Out of Stock. When will new inventory arrive or can I pre-order?`
   );
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!stockInfo.isAvailable) return;
     addToCart(product, 1);
     router.push("/checkout");
   };
 
   return (
-    <div className="product-card" id={`product-${product.id}`}>
+    <div className={`product-card ${!stockInfo.isAvailable ? "product-card-out-of-stock opacity-90" : ""}`} id={`product-${product.id}`}>
       {/* Product Image Container */}
-      <div className="product-img-wrapper">
-        {product.badge && (
+      <div className="product-img-wrapper relative">
+        {/* Out of stock or low stock badge banner */}
+        {!stockInfo.isAvailable ? (
+          <span className="product-badge bg-red-600 text-white font-bold tracking-wider">Out of Stock</span>
+        ) : stockInfo.isLowStock ? (
+          <span className="product-badge bg-amber-600 text-white font-bold animate-pulse">Only {stockInfo.quantity} Left</span>
+        ) : product.badge ? (
           <span className="product-badge">{product.badge}</span>
-        )}
+        ) : null}
+
         <Link href={`/product-details/${product.id}`} className="product-img-link">
           <img 
             src={product.main_image} 
             alt={product.name} 
-            className="product-img" 
+            className={`product-img ${!stockInfo.isAvailable ? "grayscale-[30%]" : ""}`} 
             loading="lazy" 
           />
         </Link>
@@ -66,12 +75,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="product-model-number">Model: {product.model}</p>
         )}
 
-        {/* Rating Row */}
+        {/* Rating & Stock Pill Row */}
         <div className="product-rating-row">
           <div className="stars text-gold">★★★★★</div>
           <span className="rating-num">5.0</span>
-          <span className="stock-pill in-stock">
-            {product.in_stock ? "Authentic Stock" : "Backorder"}
+          <span className={`stock-pill ${stockInfo.status.replace(/_/g, '-')}`}>
+            {stockInfo.badgeLabel}
           </span>
         </div>
 
@@ -80,29 +89,65 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
 
         {/* Pricing & CTA Buttons */}
-        <div className="product-card-footer">
-          <div className="product-price-block">
-            <span className="price-label">Pricing</span>
-            <span className="product-price-val">{displayPrice}</span>
+        <div className="product-card-footer flex-col items-stretch gap-2.5">
+          <div className="flex items-center justify-between w-full">
+            <div className="product-price-block">
+              <span className="price-label">Pricing</span>
+              <span className="product-price-val">{displayPrice}</span>
+            </div>
+            {stockInfo.isLowStock && (
+              <span className="text-[11px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
+                ⚡ Low Stock
+              </span>
+            )}
+            {!stockInfo.isAvailable && (
+              <span className="text-[11px] font-semibold text-red-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-500/30">
+                Sold Out
+              </span>
+            )}
           </div>
 
-          <div className="product-card-actions flex flex-wrap gap-2">
-            <button 
-              type="button" 
-              className="btn btn-gold-outline btn-sm flex-1 text-xs px-2 py-2"
-              onClick={() => addToCart(product, 1)}
-              title="Add item to your shopping cart"
-            >
-              Add to Cart
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-gold btn-sm flex-1 text-xs px-2 py-2 font-bold"
-              onClick={handleBuyNow}
-              title="Proceed directly to order checkout"
-            >
-              Buy Now
-            </button>
+          <div className="product-card-actions flex flex-wrap gap-2 w-full">
+            {stockInfo.isAvailable ? (
+              <>
+                <button 
+                  type="button" 
+                  className="btn btn-gold-outline btn-sm flex-1 text-xs px-2 py-2"
+                  onClick={() => addToCart(product, 1)}
+                  title="Add item to your shopping cart"
+                >
+                  Add to Cart
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-gold btn-sm flex-1 text-xs px-2 py-2 font-bold"
+                  onClick={handleBuyNow}
+                  title="Proceed directly to order checkout"
+                >
+                  Buy Now
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  type="button" 
+                  disabled
+                  className="btn btn-sm flex-1 text-xs px-2 py-2 bg-neutral-800 text-neutral-400 border border-neutral-700 cursor-not-allowed font-medium"
+                  title="This item is currently out of stock"
+                >
+                  Out of Stock
+                </button>
+                <a 
+                  href={`https://wa.me/917533838538?text=${restockWhatsAppMessage}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-gold-outline btn-sm flex-1 text-xs px-2 py-2 text-center flex items-center justify-center font-medium"
+                  title="Inquire restock timeline via WhatsApp"
+                >
+                  Inquire Restock
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
