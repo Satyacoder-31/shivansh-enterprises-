@@ -347,12 +347,14 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
             <label className="form-label text-xs block mb-1 text-white font-semibold">
               Selling Price (₹ Customer Pays) *
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold font-bold text-sm">₹</span>
+            <div className="flex items-stretch rounded-lg overflow-hidden border border-gold/40 focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/25 transition-all bg-carbon-950">
+              <span className="inline-flex items-center justify-center px-4 bg-carbon-900 border-r border-gold/30 text-gold font-bold text-sm select-none shrink-0">
+                ₹
+              </span>
               <input
                 type="text"
                 placeholder="e.g. 1650"
-                className="form-input pl-8 text-sm font-mono font-bold text-white focus:border-gold"
+                className="w-full bg-transparent px-3.5 py-2.5 text-base font-mono font-bold text-white placeholder:text-neutral-500 focus:outline-none"
                 value={formData.price_value}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -376,12 +378,14 @@ export default function ProductForm({ initialProduct }: ProductFormProps) {
             <label className="form-label text-xs block mb-1 text-white font-semibold">
               Maximum Retail Price — MRP (₹ Original Printed Price)
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">₹</span>
+            <div className="flex items-stretch rounded-lg overflow-hidden border border-gold/40 focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/25 transition-all bg-carbon-950">
+              <span className="inline-flex items-center justify-center px-4 bg-carbon-900 border-r border-gold/30 text-neutral-400 font-bold text-sm select-none shrink-0">
+                ₹
+              </span>
               <input
                 type="text"
                 placeholder="e.g. 2499"
-                className="form-input pl-8 text-sm font-mono text-neutral-200 focus:border-gold"
+                className="w-full bg-transparent px-3.5 py-2.5 text-base font-mono text-neutral-200 placeholder:text-neutral-500 focus:outline-none"
                 value={formData.mrp}
                 onChange={(e) => {
                   const val = e.target.value;

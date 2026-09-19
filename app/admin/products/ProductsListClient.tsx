@@ -437,14 +437,14 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                         <div className="flex flex-col gap-1.5 p-2 rounded bg-carbon-900/95 border border-gold/40 shadow-xl min-w-[190px]">
                           <div>
                             <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">Selling Price (₹)</span>
-                            <div className="relative">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gold text-xs font-bold">₹</span>
+                            <div className="flex items-center rounded border border-gold/40 bg-carbon-950 overflow-hidden focus-within:border-gold">
+                              <span className="px-2 py-1 bg-carbon-900 text-gold text-xs font-bold border-r border-gold/25 select-none shrink-0">₹</span>
                               <input
                                 type="text"
                                 placeholder="e.g. 1650"
                                 value={tempPrice}
                                 onChange={(e) => setTempPrice(e.target.value)}
-                                className="w-full bg-carbon-950 border border-gold/40 rounded pl-5 pr-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-gold"
+                                className="w-full bg-transparent px-2 py-1 text-xs text-white font-mono focus:outline-none"
                                 autoFocus
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") handleSavePrice(product.id);
@@ -455,14 +455,14 @@ export default function ProductsListClient({ initialProducts }: { initialProduct
                           </div>
                           <div>
                             <span className="text-[9px] uppercase tracking-wider text-muted font-bold block mb-0.5">MRP (₹ Strikethrough)</span>
-                            <div className="relative">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-bold">₹</span>
+                            <div className="flex items-center rounded border border-gold/40 bg-carbon-950 overflow-hidden focus-within:border-gold">
+                              <span className="px-2 py-1 bg-carbon-900 text-neutral-400 text-xs font-bold border-r border-gold/25 select-none shrink-0">₹</span>
                               <input
                                 type="text"
                                 placeholder="e.g. 2499"
                                 value={tempMrp}
                                 onChange={(e) => setTempMrp(e.target.value)}
-                                className="w-full bg-carbon-950 border border-gold/40 rounded pl-5 pr-2 py-1 text-xs text-neutral-200 font-mono focus:outline-none focus:border-gold"
+                                className="w-full bg-transparent px-2 py-1 text-xs text-neutral-200 font-mono focus:outline-none"
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") handleSavePrice(product.id);
                                   if (e.key === "Escape") setEditingPriceId(null);
